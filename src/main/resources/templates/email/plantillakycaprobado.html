@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Type" charset="UTF-8" content="text/html" />
+  <title>Correo - JDS Restablecer tu contraseña</title>
+</head>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+</style>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap');
+</style>
+
+<body style="font-family: 'Roboto', sans-serif; margin: 0 auto; padding: 0; background-color: #F5F5F5;">
+  <table style=" margin: 0 auto; padding: 0px; width: 920px;">
+    <tr style="margin: 0;">
+      <div th:replace="~{fragments/header :: header}">header</div>
+    </tr>
+    <tr style="margin: 0;">
+      <td align="left" style="background-color: #FFFFFF; padding: 25px;">
+      	<!--<h4 style="font-family: 'Roboto', sans-serif; margin: 0; font-size: 18px;">Alerta transaccional</h4>-->
+        <div style="height: 3px; width: 100%; background-color: #FFCC00; margin: 0px 0 30px 0; "></div>
+        <!--<h3 style="font-family:'Nunito+Sans', 'Roboto', sans-serif; margin: 6px 0 0; font-weight: 700; color: #004070">Credenciales de acceso</h3>-->
+        
+         <p style="font-family: 'Nunito+Sans','Roboto', sans-serif;font-size: 14px; color: #32404D;  margin: 6px 0 0px 0;">
+          <strong>[(${fecha})]</strong> <!--fhfghfg-->
+        </p>
+        <!--<h3 style="font-family: 'Roboto', sans-serif; margin: 6px 0 0; font-weight: 700; color: #32404D">Informe de [(${tipoExtractoNombre})]</h3>-->
+        <p style="font-family: 'Nunito+Sans','Roboto', sans-serif;font-size: 14px; color: #32404D;">
+          <strong>Estimado(a) usuario: </strong><!--fhfghfg-->
+        </p>
+        
+        <p style="font-family: 'Nunito+Sans','Roboto', sans-serif;font-size: 14px; color: #32404D; text-align: justify;">
+			Nos complace informarte que <strong>tu cuenta ha sido verificada exitosamente</strong>.
+          Ahora puedes acceder a todas las funcionalidades de nuestra plataforma sin restricciones.
+		</p>
+       
+       <p style="font-family: 'Nunito+Sans','Roboto', sans-serif;font-size: 16px; color: #32404D; text-align: justify;">Lo invitmos a que <strong>inicies sesión nuevamente</strong> para continuar utilizando tu cuenta.</p>
+       <p style="font-family: 'Nunito+Sans','Roboto', sans-serif;font-size: 16px; color: #32404D; text-align: justify;">Si no reconoces esta acción, por favor contacta a nuestro equipo de soporte.</p>
+		   
+      </td>
+    </tr>
+    <tr style="margin: 0;">
+      <div th:replace="~{fragments/footer :: footer}">footer</div>
+    </tr>
+  </table>
+</body>
+
+</html>
+       
