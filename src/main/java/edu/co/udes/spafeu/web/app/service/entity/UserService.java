@@ -11,15 +11,9 @@ import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 
 public interface UserService {
 
-	UsuarioDTO registrarUsuario(UsuarioDTO userDTO) throws SpafeuException;
-
-	void forgotPassword(String email) throws SpafeuException;
-
 	Boolean validarCorreo(String email) throws SpafeuException;
 
 	Boolean validarUsername(String username) throws SpafeuException;
-
-	void resetPassword(String token, String newPassword) throws SpafeuException;
 
 	Resource obtenerImagenPerfil(String nombreRecurso, Long currentUserId) throws SpafeuException, MalformedURLException;
 

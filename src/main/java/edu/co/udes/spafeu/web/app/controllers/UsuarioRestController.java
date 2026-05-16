@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +24,6 @@ import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.SeverityEnum;
 import edu.co.udes.spafeu.web.app.service.task.UsuarioServiceTask;
 import edu.co.udes.spafeu.web.app.util.Messages;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,7 +31,8 @@ import lombok.RequiredArgsConstructor;
  * Titulo: Proyecto SPAFEU
  * </p>
  * <p>
- * Descripción: controlador REST para realizar procesos de gestión de usuarios.
+ * Descripción: Controlador REST para operaciones de perfil y validación de usuarios.
+ * No maneja procesos de autenticación ni recuperación de contraseña.
  * </p>
  *
  * @author Cristian Misse - cgmisse@gmail.com
@@ -49,40 +48,6 @@ public class UsuarioRestController {
 	private final Messages messages;
 	private final UsuarioServiceTask userServiceTask;
 
-	@PostMapping(value="/register")
-	public ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> newUserAdmin(
-			@Valid @RequestBody UsuarioDTO userDTO,
-			BindingResult result) {
-
-		if (result.hasErrors()) {
-			RespuestaServicioDTO<UsuarioDTO> respuestaServicioDTO = new RespuestaServicioDTO<>();
-			respuestaServicioDTO.setMensajeDTO(
-					new MensajeDTO(SeverityEnum.ERROR,
-							messages.getKey(SeverityEnum.ERROR.getKey()),messages.getKey(KEY_ERROR_PETICION_GENERICO)));
-			respuestaServicioDTO.setOk(false);
-			return new ResponseEntity<>(respuestaServicioDTO, HttpStatus.BAD_REQUEST);
-		}
-
-		return userServiceTask.registarUsuario(userDTO);
-	}
-	
-	@PostMapping(value = "/forgot-password")
-	public ResponseEntity<RespuestaServicioDTO<String>> forgotPassword(@RequestParam String email){
-		if (!StringUtils.hasText(email)) {
-			RespuestaServicioDTO<String> respuestaServicioDTO = new RespuestaServicioDTO<>();
-			
-			respuestaServicioDTO.setMensajeDTO(
-					new MensajeDTO(SeverityEnum.ERROR, 
-							messages.getKey(SeverityEnum.ERROR.getKey()),messages.getKey(KEY_ERROR_PETICION_GENERICO)));
-			
-			respuestaServicioDTO.setOk(false);
-			
-			return new ResponseEntity<>(respuestaServicioDTO, HttpStatus.BAD_REQUEST);
-		}
-		
-		return userServiceTask.forgotPassword(email);
-	}
-	
 	@GetMapping(value = "/isemail/{email}")
 	public ResponseEntity<RespuestaServicioDTO<Boolean>> existeCorreo(@PathVariable String email){
 		
@@ -117,22 +82,6 @@ public class UsuarioRestController {
 		return userServiceTask.existeUsername(username);
 	}
 	
-	 @PostMapping("/reset-password")
-	    public ResponseEntity<RespuestaServicioDTO<String>> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-		 
-		 if (!StringUtils.hasText(token) || !StringUtils.hasText(newPassword) ) {
-				RespuestaServicioDTO<String> respuestaServicioDTO = new RespuestaServicioDTO<>();
-				
-				respuestaServicioDTO.setMensajeDTO(
-						new MensajeDTO(SeverityEnum.ERROR, 
-								messages.getKey(SeverityEnum.ERROR.getKey()),messages.getKey(KEY_ERROR_PETICION_GENERICO)));
-				
-				return new ResponseEntity<>(respuestaServicioDTO, HttpStatus.BAD_REQUEST);
-		}
-	       
-		 return userServiceTask.resetPassword(token,newPassword);
-	  }
-
 	
 	@GetMapping("/recurso/{currentUserId}/{nombreRecurso:.+}")
 	public ResponseEntity<Resource> obtenerImagenPerfil(@PathVariable String nombreRecurso,@PathVariable Long currentUserId){

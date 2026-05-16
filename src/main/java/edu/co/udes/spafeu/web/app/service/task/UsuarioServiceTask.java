@@ -9,15 +9,9 @@ import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 
 public interface UsuarioServiceTask {
 
-	ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> registarUsuario(UsuarioDTO userDTO);
-
-	ResponseEntity<RespuestaServicioDTO<String>> forgotPassword(String email);
-
 	ResponseEntity<RespuestaServicioDTO<Boolean>> existeCorreo(String email);
 
 	ResponseEntity<RespuestaServicioDTO<Boolean>> existeUsername(String username);
-
-	ResponseEntity<RespuestaServicioDTO<String>> resetPassword(String token, String newPassword);
 
 	Resource obtenerImagenPerfil(String nombreRecurso, Long currentUserId);
 	
@@ -25,5 +19,4 @@ public interface UsuarioServiceTask {
 
 	ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> cargarImg(MultipartFile archivo, Long currentUserId);
 
-	
 }

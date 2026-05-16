@@ -1,10 +1,8 @@
 package edu.co.udes.spafeu.web.app.service.task.impl;
 
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_CORREO_EXITOSO;
 import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_LABEL;
 import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_PETICION_GENERICO;
 import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_SUCCESS;
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_UPDATE_PASSWORD_EXITOSO;
 import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.SUCCESS_DETALLE;
 
 import java.nio.file.Path;
@@ -27,50 +25,23 @@ import edu.co.udes.spafeu.web.app.util.Messages;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+/**
+ * <p>Título: Proyecto SPAFEU</p>
+ * <p>Descripción: Implementación de UsuarioServiceTask para operaciones de perfil y validación de usuarios.
+ * Maneja validación de correo/username, búsqueda de usuarios y gestión de imágenes de perfil.
+ * NO incluye operaciones de registro ni recuperación de contraseña (responsabilidad de AuthService).</p>
+ * @author AGENT-DATA-EXPERT-SPAFEU
+ */
 @Service
 @RequiredArgsConstructor
 @Log4j2
 public class UsuarioServiceTaskImpl implements UsuarioServiceTask {
 	
 	private static final String ERROR_INESPERADO_USUARIO = "error inesperado usuario -> ";
-	static final String KEY_SUCCESS_REG_EXITOSO= "usuario.registro.exitoso";
 	
 	private final Messages messages;
 	private final UserService userService;
 	
-	@Override
-	public ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> registarUsuario(UsuarioDTO userDTO) {
-		
-		RespuestaServicioDTO<UsuarioDTO> respuestaServicioUserDTO = new RespuestaServicioDTO<>();
-
-		userDTO.setEnabled(Boolean.FALSE);
-		UsuarioDTO respuesta = userService.registrarUsuario(userDTO);
-
-		respuestaServicioUserDTO.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS, messages.getKey(KEY_SUCCESS),
-				messages.getKey(KEY_SUCCESS_REG_EXITOSO).replace("{1}", userDTO.getUsername())));
-		respuestaServicioUserDTO.setOk(true);
-		respuestaServicioUserDTO.setNegocio(respuesta);
-
-		return new ResponseEntity<>(respuestaServicioUserDTO, HttpStatus.CREATED);
-	}
-
-
-	@Override
-	public ResponseEntity<RespuestaServicioDTO<String>> forgotPassword(String email) {
-		
-		RespuestaServicioDTO<String> respuestaServicioUserDTO = new RespuestaServicioDTO<>();
-
-		userService.forgotPassword(email);
-
-		respuestaServicioUserDTO.setMensajeDTO(
-				new MensajeDTO(SeverityEnum.SUCCESS, messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
-		respuestaServicioUserDTO.setOk(true);
-		respuestaServicioUserDTO.setNegocio(KEY_CORREO_EXITOSO);
-
-		return new ResponseEntity<>(respuestaServicioUserDTO, HttpStatus.OK);
-	}
-
-
 	@Override
 	public ResponseEntity<RespuestaServicioDTO<Boolean>> existeCorreo(String email) {
 		
@@ -96,19 +67,6 @@ public class UsuarioServiceTaskImpl implements UsuarioServiceTask {
 		return new ResponseEntity<>(respuestaServicioDTO, HttpStatus.OK);
 	}
 
-
-	@Override
-	public ResponseEntity<RespuestaServicioDTO<String>> resetPassword(String token, String newPassword) {
-		RespuestaServicioDTO<String> respuestaServicioUserDTO = new RespuestaServicioDTO<>();
-			
-			userService.resetPassword(token, newPassword);
-			
-			respuestaServicioUserDTO.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS, messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
-			respuestaServicioUserDTO.setOk(true);
-			respuestaServicioUserDTO.setNegocio(KEY_UPDATE_PASSWORD_EXITOSO); 
-		
-		return new ResponseEntity<>(respuestaServicioUserDTO, HttpStatus.OK);
-	}
 
 	@Override
 	public Resource obtenerImagenPerfil(String nombreRecurso, Long currentUserId) {

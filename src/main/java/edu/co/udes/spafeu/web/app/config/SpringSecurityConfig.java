@@ -42,9 +42,9 @@ public class SpringSecurityConfig {
         return http.authorizeHttpRequests(authz -> authz
                         .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/recurso/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/forgot-password").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users/reset-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/isemail/{email}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/isusername/{username}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/kyc/register").hasRole(ROLE_USER)
