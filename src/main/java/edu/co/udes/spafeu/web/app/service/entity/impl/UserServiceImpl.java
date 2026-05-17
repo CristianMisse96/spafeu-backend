@@ -5,7 +5,6 @@ import java.net.MalformedURLException;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.core.io.Resource;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +35,6 @@ public class UserServiceImpl implements UserService {
 	private static final String ERROR_USUARIO_NO_EXISTE_CARGAR_IMAGEN = "error.usuario.no.existe.cargar.imagen";
 
 	private final UsuarioRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
 	private final ModelMapper modelMapper;
 	private final UploadFileService uploadFileService;
 

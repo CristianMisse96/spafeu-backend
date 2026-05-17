@@ -1,7 +1,7 @@
 package edu.co.udes.spafeu.web.app.exception.handler;
 
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_LABEL;
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_GENERICO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_LABEL;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_GENERICO;
 
 import java.util.UUID;
 

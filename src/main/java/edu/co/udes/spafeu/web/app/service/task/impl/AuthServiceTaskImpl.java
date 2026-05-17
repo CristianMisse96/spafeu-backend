@@ -1,9 +1,9 @@
 package edu.co.udes.spafeu.web.app.service.task.impl;
 
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_LABEL;
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_PETICION_GENERICO;
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_SUCCESS;
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.SUCCESS_DETALLE;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_LABEL;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_PETICION_GENERICO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_SUCCESS;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_DETALLE;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package edu.co.udes.spafeu.web.app.controllers;
 
-import static edu.co.udes.spafeu.web.app.util.ConstantesUtil.KEY_ERROR_PETICION_GENERICO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_PETICION_GENERICO;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

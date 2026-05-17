@@ -1,13 +1,16 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
 import static edu.co.udes.spafeu.web.app.util.FormatoFechaUtil.FORMATO_FECHA_DD_MM_YYYY;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_FORGOT_PASSWORD_NO_EXISTE;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_REGISTRAR_EXISTE;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_RESET_PASSWORD_TOKEN_EXPIRADO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_RESET_PASSWORD_TOKEN_NO_VALIDO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
@@ -19,14 +22,14 @@ import org.springframework.transaction.annotation.Transactional;
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.entities.PasswordResetToken;
-import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.entities.Role;
+import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.RolEnum;
 import edu.co.udes.spafeu.web.app.models.enums.TemplateMailEnum;
 import edu.co.udes.spafeu.web.app.models.enums.TokenStatusEnum;
 import edu.co.udes.spafeu.web.app.repositories.PasswordResetTokenRepository;
-import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.repositories.RoleRepository;
+import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.service.entity.AuthService;
 import edu.co.udes.spafeu.web.app.service.entity.CorreoService;
 import lombok.RequiredArgsConstructor;
@@ -49,11 +52,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${email.asunto.reset.password}")
     private String forgotPasswordAsunto;
-
-    private static final String ERROR_USUARIO_FORGOT_PASSWORD_NO_EXISTE = "error.usuario.forgot.password.no.existe";
-    private static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_EXPIRADO = "error.usuario.reset.password.token.expirado";
-    private static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_NO_VALIDO = "error.usuario.reset.password.token.no.valido";
-    private static final String ERROR_USUARIO_REGISTRAR_EXISTE = "error.usuario.registrar.existe";
 
     private final UsuarioRepository userRepository;
     private final PasswordEncoder passwordEncoder;
