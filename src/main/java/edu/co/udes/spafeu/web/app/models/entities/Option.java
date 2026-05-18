@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "question_option", uniqueConstraints = {@UniqueConstraint(columnNames = "LABEL", name = "UQ_OPTION_LABEL")})
+@Table(name = "OPTION", uniqueConstraints = {@UniqueConstraint(columnNames = "LABEL", name = "UQ_OPTION_LABEL")})
 @Getter 
 @Setter
 public class Option {

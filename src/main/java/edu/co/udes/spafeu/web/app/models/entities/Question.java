@@ -1,6 +1,6 @@
 package edu.co.udes.spafeu.web.app.models.entities;
 
-import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,5 +37,6 @@ public class Question {
     private String text;
     
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<QuestionOption> options;
+    @OrderBy("id ASC")
+    private Set<QuestionOption> options;
 }

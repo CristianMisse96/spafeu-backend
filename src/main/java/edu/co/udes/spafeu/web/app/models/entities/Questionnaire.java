@@ -1,6 +1,6 @@
 package edu.co.udes.spafeu.web.app.models.entities;
 
-import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,5 +29,6 @@ public class Questionnaire {
     private String name;
     
     @OneToMany(mappedBy = "questionnaire", fetch = FetchType.LAZY)
-    private List<Question> questions;
+    @OrderBy("id ASC")
+    private Set<Question> questions;
 }
