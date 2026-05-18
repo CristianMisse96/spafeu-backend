@@ -53,6 +53,7 @@ public class SpringSecurityConfig {
                                 "/v3/api-docs/swagger-config", "/swagger-resources/**", "/webjars/**").permitAll()
                         // Módulo Questionnaire - requiere rol USER para listar cuestionarios
                         .requestMatchers(HttpMethod.GET, "/api/questionnaires/all").permitAll()//.hasRole(ROLE_USER)
+						.requestMatchers(HttpMethod.GET, "/api/campuses").permitAll()
                         .anyRequest().authenticated())
                 .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService))
                 .addFilter(new JWTValidationFilter(authenticationManager(), jwtService))

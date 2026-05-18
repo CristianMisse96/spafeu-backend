@@ -38,6 +38,6 @@ public class CampusProgram {
     public CampusProgram(Campus campus, AcademicProgram program) {
         this.campus = campus;
         this.program = program;
-        this.id = new CampusProgramId(campus.getId(), program.getId());
+        this.id = new CampusProgramId(campus.getId(), program != null ? program.getId() : null);
     }
 }
