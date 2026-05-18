@@ -1,12 +1,12 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.modelmapper.ModelMapper;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.questionnaire.OptionDTO;
 import edu.co.udes.spafeu.web.app.models.dto.questionnaire.QuestionDTO;
@@ -18,7 +18,6 @@ import edu.co.udes.spafeu.web.app.models.entities.Questionnaire;
 import edu.co.udes.spafeu.web.app.repositories.QuestionnaireRepository;
 import edu.co.udes.spafeu.web.app.service.entity.QuestionnaireService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 /**
  * <p>Titulo: Proyecto SPAFEU</p>
@@ -27,27 +26,16 @@ import lombok.extern.log4j.Log4j2;
  */
 @Service
 @RequiredArgsConstructor
-@Log4j2
 public class QuestionnaireServiceImpl implements QuestionnaireService {
 
     private final QuestionnaireRepository questionnaireRepository;
-    private final ModelMapper modelMapper;
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Consulta todos los cuestionarios con sus relaciones cargadas mediante el método
-     * {@code findAllWithDetails()} del Repository y mapea cada entidad a DTO usando ModelMapper.
-     * Los mapeos de entidades intermedias (QuestionOption → OptionDTO) están configurados
-     * en AppConfig mediante PropertyMap.
-     * </p>
-     */
     @Override
     @Transactional(readOnly = true)
     public Set<QuestionnaireDTO> findAllQuestionnaires() throws SpafeuException {
-        log.info("Iniciando consulta de todos los cuestionarios con detalles");
+       
         Set<Questionnaire> questionnaires = questionnaireRepository.findAllWithDetails();
-        log.info("Se encontraron {} cuestionarios", questionnaires.size());
+        
         return questionnaires.stream()
                 .map(this::toQuestionnaireDTO)
                 .collect(Collectors.toCollection(LinkedHashSet::new));

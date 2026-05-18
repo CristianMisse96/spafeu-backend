@@ -128,19 +128,23 @@ class QuestionnaireServiceImplTest {
             Set<QuestionnaireDTO> resultado = questionnaireService.findAllQuestionnaires();
 
             // Assert
-            assertThat(resultado).isNotNull();
-            assertThat(resultado).hasSize(2);
-            assertThat(resultado).extracting(QuestionnaireDTO::getId)
+            assertThat(resultado)
+                    .isNotNull()
+                    .hasSize(2);
+            assertThat(resultado)
+                    .extracting(QuestionnaireDTO::getId)
                     .containsExactlyInAnyOrder(1L, 2L);
-            assertThat(resultado).extracting(QuestionnaireDTO::getName)
+            assertThat(resultado)
+                    .extracting(QuestionnaireDTO::getName)
                     .containsExactlyInAnyOrder("Cuestionario de Salud", "Cuestionario de Actividad Física");
 
             // Verificar mapeo completo del primer cuestionario
             QuestionnaireDTO primer = resultado.stream()
                     .filter(q -> q.getId().equals(1L))
                     .findFirst().orElseThrow();
-            assertThat(primer.getQuestions()).hasSize(1);
-            assertThat(primer.getQuestions()).extracting(QuestionDTO::getText)
+            assertThat(primer.getQuestions())
+                    .hasSize(1)
+                    .extracting(QuestionDTO::getText)
                     .containsExactly("¿Tiene dolor?");
             assertThat(primer.getQuestions().iterator().next().getOptions())
                     .extracting(OptionDTO::getLabel)

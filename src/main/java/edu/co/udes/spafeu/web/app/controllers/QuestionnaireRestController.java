@@ -51,7 +51,7 @@ public class QuestionnaireRestController {
         @ApiResponse(responseCode = "401", description = "Token JWT no válido o expirado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor al consultar los cuestionarios")
     })
-    @GetMapping
+    @GetMapping(value = "/all")
     public ResponseEntity<RespuestaServicioDTO<Set<QuestionnaireDTO>>> findAll() {
         return questionnaireServiceTask.findAllQuestionnaires();
     }
