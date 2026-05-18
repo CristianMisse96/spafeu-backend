@@ -19,9 +19,9 @@ public class Campus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_CAMPUS", updatable = false, nullable = false)
+    @Column(name = "ID_CAMPUS")
     private Long id;
 
-    @Column(name = "NAME", nullable = false, length = 100)
+    @Column(name = "NAME", nullable = false, length = 200)
     private String name;
 }
