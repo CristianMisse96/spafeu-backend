@@ -43,10 +43,12 @@ public class JWTServiceImpl implements JWTService {
 		
 		String username= user.getUsername();
 		
-		Collection<? extends GrantedAuthority> roles= auth.getAuthorities();
+		Collection<SimpleGrantedAuthority> roles = auth.getAuthorities().stream()
+													   .map(a -> new SimpleGrantedAuthority(a.getAuthority()))
+													   .toList();
 		
 		Claims claims = Jwts.claims()
-				.add("authorities", new ObjectMapper().writeValueAsString(roles))
+				.add("authorities", roles)
 				.add("username", username)
 				.add("id",userDTO.getId())
 				.build();
