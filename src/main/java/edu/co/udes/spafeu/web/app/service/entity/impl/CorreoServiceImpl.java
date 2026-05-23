@@ -1,14 +1,14 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
 import edu.co.udes.spafeu.web.app.models.dto.MailDTO;
 import edu.co.udes.spafeu.web.app.models.enums.TemplateMailEnum;
 import edu.co.udes.spafeu.web.app.service.entity.CorreoService;
 import edu.co.udes.spafeu.web.app.service.entity.EmailService;
-import edu.co.udes.spafeu.web.app.exception.SpafeuException;
-import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Map;
 
 /**
  * <p>Titulo: Proyecto SPAFEU</p>

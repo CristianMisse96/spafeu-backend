@@ -1,7 +1,5 @@
 package edu.co.udes.spafeu.web.app.service.task.impl;
 
-import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_LABEL;
-import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_ERROR_PETICION_GENERICO;
 import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_SUCCESS;
 import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_DETALLE;
 
@@ -17,7 +15,6 @@ import edu.co.udes.spafeu.web.app.service.entity.AuthService;
 import edu.co.udes.spafeu.web.app.service.task.AuthServiceTask;
 import edu.co.udes.spafeu.web.app.util.Messages;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 /**
  * <p>Titulo: Proyecto SPAFEU</p>
@@ -27,10 +24,7 @@ import lombok.extern.log4j.Log4j2;
  */
 @Service
 @RequiredArgsConstructor
-@Log4j2
 public class AuthServiceTaskImpl implements AuthServiceTask {
-
-	private static final String ERROR_INESPERADO_AUTH = "error inesperado auth -> ";
 
 	// Keys de mensajes específicos de autenticación
 	static final String KEY_SUCCESS_REGISTRO_EXITOSO = "auth.registro.exitoso";

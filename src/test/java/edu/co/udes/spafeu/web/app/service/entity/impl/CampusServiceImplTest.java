@@ -1,11 +1,12 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+
 import edu.co.udes.spafeu.web.app.models.dto.AcademicProgramDTO;
 import edu.co.udes.spafeu.web.app.models.dto.CampusDTO;
 import edu.co.udes.spafeu.web.app.models.entities.AcademicProgram;

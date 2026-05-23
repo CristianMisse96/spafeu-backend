@@ -1,19 +1,22 @@
-package edu.co.udes.spafeu.web.app.service.entity;
+package edu.co.udes.spafeu.web.app.service.entity.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,11 +25,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
-import edu.co.udes.spafeu.web.app.models.dto.MailDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.entities.PasswordResetToken;
 import edu.co.udes.spafeu.web.app.models.entities.Role;
@@ -37,11 +42,8 @@ import edu.co.udes.spafeu.web.app.models.enums.TokenStatusEnum;
 import edu.co.udes.spafeu.web.app.repositories.PasswordResetTokenRepository;
 import edu.co.udes.spafeu.web.app.repositories.RoleRepository;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
-import edu.co.udes.spafeu.web.app.service.entity.impl.AuthServiceImpl;
+import edu.co.udes.spafeu.web.app.service.entity.CorreoService;
 import lombok.extern.log4j.Log4j2;
-import org.mockito.Mock;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * <p>Título: Proyecto SPAFEU</p>
@@ -63,7 +65,7 @@ class AuthServiceImplTest {
     private PasswordResetTokenRepository tokenRepository;
 
     @Mock
-    private EmailService emailService;
+    private CorreoService correoService;
 
     @Mock
     private ModelMapper modelMapper;
@@ -108,7 +110,7 @@ class AuthServiceImplTest {
             when(userRepository.findByUsernameOrCorreo(EMAIL_USUARIO)).thenReturn(Optional.of(usuario));
             doNothing().when(tokenRepository).invalidateTokensByUser(anyLong(), any());
             when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
-            doNothing().when(emailService).sendMail(any(MailDTO.class), any(TemplateMailEnum.class));
+            doNothing().when(correoService).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class), nullable(String.class));
 
             // Act
             authService.forgotPassword(EMAIL_USUARIO);
@@ -119,14 +121,12 @@ class AuthServiceImplTest {
             verify(tokenRepository).save(any(PasswordResetToken.class));
 
             // Capturar argumentos del correo
-            ArgumentCaptor<MailDTO> mailCaptor = ArgumentCaptor.forClass(MailDTO.class);
+            ArgumentCaptor<Map<String, Object>> mailCaptor = ArgumentCaptor.forClass(Map.class);
             ArgumentCaptor<TemplateMailEnum> templateCaptor = ArgumentCaptor.forClass(TemplateMailEnum.class);
-            verify(emailService).sendMail(mailCaptor.capture(), templateCaptor.capture());
+            verify(correoService).generarCorreo(mailCaptor.capture(), anyString(), templateCaptor.capture(), nullable(String.class));
 
-            MailDTO mailEnviado = mailCaptor.getValue();
-            assertThat(mailEnviado.getPara()).contains(EMAIL_USUARIO);
-            assertThat(mailEnviado.getModel()).containsKey("token");
-            assertThat(mailEnviado.getModel()).containsKey("fecha");
+            Map<String, Object> modeloEnviado = mailCaptor.getValue();
+            assertThat(modeloEnviado).containsKeys("token", "fecha");
             assertThat(templateCaptor.getValue()).isEqualTo(TemplateMailEnum.PLANTILLA_FORGOT_PASSWORD_USUARIO);
 
             log.info("Test forgotPassword exitoso: token generado y correo enviado");
@@ -144,7 +144,7 @@ class AuthServiceImplTest {
 
             assertThat(ex.getMensaje()).isEqualTo("error.usuario.forgot.password.no.existe");
             verify(tokenRepository, never()).save(any());
-            verify(emailService, never()).sendMail(any(), any());
+            verify(correoService, never()).generarCorreo(any(), anyString(), any(), anyString());
             log.info("Test forgotPassword usuario no existe: excepción lanzada correctamente");
         }
 
@@ -155,7 +155,7 @@ class AuthServiceImplTest {
             when(userRepository.findByUsernameOrCorreo(EMAIL_USUARIO)).thenReturn(Optional.of(usuario));
             doNothing().when(tokenRepository).invalidateTokensByUser(anyLong(), any());
             when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
-            doNothing().when(emailService).sendMail(any(), any());
+            doNothing().when(correoService).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class), nullable(String.class));
 
             // Act
             authService.forgotPassword(EMAIL_USUARIO);
@@ -173,7 +173,7 @@ class AuthServiceImplTest {
             when(userRepository.findByUsernameOrCorreo(EMAIL_USUARIO)).thenReturn(Optional.of(usuario));
             doNothing().when(tokenRepository).invalidateTokensByUser(anyLong(), any());
             when(tokenRepository.save(any(PasswordResetToken.class))).thenReturn(token);
-            doNothing().when(emailService).sendMail(any(), any());
+            doNothing().when(correoService).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class), nullable(String.class));
 
             // Act
             authService.forgotPassword(EMAIL_USUARIO);
@@ -213,7 +213,7 @@ class AuthServiceImplTest {
             verify(tokenRepository).findByTokenAndStatus(TOKEN_VALIDO, TokenStatusEnum.ACTIVE);
             verify(passwordEncoder).encode(NUEVA_PASSWORD);
             verify(userRepository).save(usuario);
-            assertTrue(token.getStatus() == TokenStatusEnum.USED);
+            assertSame(TokenStatusEnum.USED, token.getStatus());
             verify(tokenRepository).save(token);
             log.info("Test resetPassword exitoso: contraseña actualizada y token marcado como USED");
         }
@@ -249,7 +249,7 @@ class AuthServiceImplTest {
                     () -> authService.resetPassword(TOKEN_VALIDO, NUEVA_PASSWORD));
 
             assertThat(ex.getMensaje()).isEqualTo("error.usuario.reset.password.token.expirado");
-            assertTrue(token.getStatus() == TokenStatusEnum.EXPIRED, "El token debe marcarse como EXPIRED en memoria");
+            assertSame(token.getStatus(), TokenStatusEnum.EXPIRED, "El token debe marcarse como EXPIRED en memoria");
             verify(tokenRepository, never()).save(any(PasswordResetToken.class));
             verify(passwordEncoder, never()).encode(anyString());
             verify(userRepository, never()).save(any());
@@ -270,7 +270,7 @@ class AuthServiceImplTest {
             authService.resetPassword(TOKEN_VALIDO, NUEVA_PASSWORD);
 
             // Assert
-            assertTrue(token.getStatus() == TokenStatusEnum.USED);
+            assertSame(token.getStatus(), TokenStatusEnum.USED);
             verify(tokenRepository).save(token);
             log.info("Test token marcado como USED: correcto");
         }

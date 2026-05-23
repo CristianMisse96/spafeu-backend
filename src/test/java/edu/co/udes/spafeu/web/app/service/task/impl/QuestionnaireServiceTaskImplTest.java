@@ -1,7 +1,10 @@
 package edu.co.udes.spafeu.web.app.service.task.impl;
 
-import static org.mockito.Mockito.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Set;
 
@@ -45,7 +48,6 @@ class QuestionnaireServiceTaskImplTest {
     private QuestionnaireServiceTaskImpl questionnaireServiceTask;
 
     private QuestionnaireDTO questionnaireDTO;
-    private static final String ID_CUESTIONARIO = "1";
 
     @BeforeEach
     void setUp() {

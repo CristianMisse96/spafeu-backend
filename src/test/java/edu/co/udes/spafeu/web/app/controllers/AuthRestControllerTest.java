@@ -16,8 +16,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -31,7 +31,6 @@ import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.SeverityEnum;
 import edu.co.udes.spafeu.web.app.service.task.AuthServiceTask;
 import edu.co.udes.spafeu.web.app.util.Messages;
-import lombok.extern.log4j.Log4j2;
 
 /**
  * <p>Título: Proyecto SPAFEU</p>
@@ -41,7 +40,6 @@ import lombok.extern.log4j.Log4j2;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Tests de AuthRestController")
-@Log4j2
 @MockitoSettings(strictness = Strictness.LENIENT)
 class AuthRestControllerTest {
 

@@ -17,7 +17,6 @@ import edu.co.udes.spafeu.web.app.service.entity.QuestionnaireService;
 import edu.co.udes.spafeu.web.app.service.task.QuestionnaireServiceTask;
 import edu.co.udes.spafeu.web.app.util.Messages;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 /**
  * <p>Titulo: Proyecto SPAFEU</p>
@@ -27,7 +26,6 @@ import lombok.extern.log4j.Log4j2;
  */
 @Service
 @RequiredArgsConstructor
-@Log4j2
 public class QuestionnaireServiceTaskImpl implements QuestionnaireServiceTask {
 
     private final Messages messages;
