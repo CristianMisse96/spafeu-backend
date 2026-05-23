@@ -22,4 +22,11 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_EXPIRADO = "error.usuario.reset.password.token.expirado";
 	public static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_NO_VALIDO = "error.usuario.reset.password.token.no.valido";
 	public static final String ERROR_USUARIO_REGISTRAR_EXISTE = "error.usuario.registrar.existe";
+
+	// ============================================================
+	// Keys del proceso de Perfil de Salud
+	// Registro de perfil de salud y respuestas al cuestionario
+	// ============================================================
+	public static final String PERFIL_SALUD_REGISTRO_EXITOSO = "perfil.salud.registro.exitoso";
+	public static final String ERROR_PERFIL_SALUD_YA_EXISTE = "error.perfil.salud.ya.existe";
 }
