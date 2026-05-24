@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
+import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -44,10 +45,12 @@ public class UsuarioDTO implements Serializable{
 	private Boolean enabled;
 	
 	private String foto;
-	
-	private EstadoKycEnum estadoKyc;
-	
-	public UsuarioDTO() {
+
+    private EstadoKycEnum estadoKyc;
+
+    private NivelActividadFisicaEnum nivelActividadFisica;
+
+    public UsuarioDTO() {
 		this.roles=new ArrayList<>();
 	}
 	

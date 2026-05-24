@@ -21,6 +21,7 @@ import edu.co.udes.spafeu.web.app.models.entities.UserAnswer;
 import edu.co.udes.spafeu.web.app.models.entities.UserHealthProfile;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
+import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.repositories.CampusProgramRepository;
 import edu.co.udes.spafeu.web.app.repositories.OptionRepository;
 import edu.co.udes.spafeu.web.app.repositories.QuestionRepository;
@@ -28,6 +29,8 @@ import edu.co.udes.spafeu.web.app.repositories.UserAnswerRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserHealthProfileRepository;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.service.entity.UserHealthProfileService;
+import edu.co.udes.spafeu.web.app.util.ClasificacionActividadFisicaUtil;
+import edu.co.udes.spafeu.web.app.util.ClasificacionConstantesUtil;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -41,6 +44,7 @@ public class UserHealthProfileServiceImpl implements UserHealthProfileService {
     private final OptionRepository optionRepository;
     private final CampusProgramRepository campusProgramRepository;
 
+   
     @Override
     @Transactional
     public UsuarioDTO registerHealthProfile(UserHealthProfileDTO dto, Long userId) throws SpafeuException {
@@ -58,6 +62,13 @@ public class UserHealthProfileServiceImpl implements UserHealthProfileService {
         UserHealthProfile profileEntity = toProfileEntity(dto);
         profileEntity.setUser(user);
         profileEntity.setCampusProgram(campusProgram);
+
+        // Filtrar respuestas para clasificación de actividad física
+        List<UserAnswerDTO> respuestasFiltradas = filterAnswersForActivityClassification(dto.getAnswers());
+
+        // Clasificar nivel de actividad física
+        NivelActividadFisicaEnum nivelActividad = ClasificacionActividadFisicaUtil.clasificar(respuestasFiltradas);
+        profileEntity.setNivelActividadFisica(nivelActividad);
 
         UserHealthProfile savedProfile = userHealthProfileRepository.save(profileEntity);
 
@@ -81,8 +92,26 @@ public class UserHealthProfileServiceImpl implements UserHealthProfileService {
         UsuarioDTO response = new UsuarioDTO();
         response.setId(user.getId());
         response.setEstadoKyc(savedProfile.getEstadoKyc());
+        response.setNivelActividadFisica(savedProfile.getNivelActividadFisica());
 
         return response;
+    }
+
+    private List<UserAnswerDTO> filterAnswersForActivityClassification(List<UserAnswerDTO> answers) {
+        if (answers == null || answers.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> questionIdsForClassification = List.of(
+                ClasificacionConstantesUtil.ID_QUESTION_DIAS_ACTIVIDAD_FISICA,
+                ClasificacionConstantesUtil.ID_QUESTION_DURACION_ACTIVIDAD_FISICA,
+                ClasificacionConstantesUtil.ID_QUESTION_TIPO_ACTIVIDAD,
+                ClasificacionConstantesUtil.ID_QUESTION_COMPORTAMIENTO_SEDENTARIO
+        );
+
+        return answers.stream()
+                      .filter(answer -> questionIdsForClassification.contains(answer.getQuestionId()))
+                      .toList();
     }
 
 	private UserHealthProfile toProfileEntity(UserHealthProfileDTO dto) {

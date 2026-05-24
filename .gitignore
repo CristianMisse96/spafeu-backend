@@ -57,3 +57,4 @@ replay_pid*
 # sub-agentes y skills
 .kilo/*
 .kilocode/*
+.opencode/*

@@ -5,7 +5,9 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 
 import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
+import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.models.enums.SexEnum;
+import edu.co.udes.spafeu.web.app.models.enums.converter.NivelActividadFisicaEnumConverter;
 import edu.co.udes.spafeu.web.app.models.enums.converter.SexEnumConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -71,7 +73,11 @@ public class UserHealthProfile {
     
     @Column(name = "BMI", precision = 4, scale = 2, nullable = false)
     private BigDecimal bmi;
-    
+
+    @Convert(converter = NivelActividadFisicaEnumConverter.class)
+    @Column(name = "NIVEL_ACTIVIDAD_FISICA", length = 10, nullable = true)
+    private NivelActividadFisicaEnum nivelActividadFisica;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "ESTADO_KYC", nullable = false, length = 20)
     private EstadoKycEnum estadoKyc;
