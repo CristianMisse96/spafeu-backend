@@ -23,6 +23,7 @@ Cuando se presenta un requisito de negocio, DEBES operar en "Modo Orquestación"
 | 10 | Seguridad endpoint | **AGENT-SECURITY-SPAFEU** | `jwt-security` |
 | 11 | Pruebas Unitarias | **AGENT-QA-EXPERT-SPAFEU** | `testing-junit-mockito` |
 | 12 | Javadoc y Swagger | **AGENT-DOCS-SPAFEU** | `documentation-openapi-javadoc` |
+| 13 | Refactoring de imports | **AGENT-IMPORTS-SPAFEU** | `import-rules` |
 
 ## Directorio de Sub-agentes
 Los sub-agentes se encuentran en `.kilocode/agents/`. DEBES invocarlos basándote en su experiencia:
@@ -33,6 +34,7 @@ Los sub-agentes se encuentran en `.kilocode/agents/`. DEBES invocarlos basándot
 - **AGENT-SECURITY-SPAFEU**: Responsable de `SpringSecurityConfig`, `SecurityFilterChain`, filtros JWT, reglas `.requestMatchers()`, CORS, `SessionCreationPolicy.STATELESS`.
 - **AGENT-QA-EXPERT-SPAFEU**: Responsable de `src/test/java` y reportes de cobertura.
 - **AGENT-DOCS-SPAFEU**: Responsable de Javadoc en Services/ServiceTask/Controllers y anotaciones OpenAPI (`@Operation`, `@ApiResponse`, etc.).
+- **AGENT-IMPORTS-SPAFEU**: Responsable de refactoring de imports: organizar imports al inicio de la clase, eliminar imports no usados, eliminar duplicados, ordenar automáticamente y prohibir wildcards.
 
 ## Lista de Verificación de Finalización (El Guardián)
 Antes de concluir un requisito, verifica:
@@ -48,6 +50,7 @@ Antes de concluir un requisito, verifica:
 - [ ] Repository no tiene lógica de negocio
 - [ ] DTO usado en entrada y salida
 - [ ] Endpoint configurado en Spring Security si es público
+- [ ] `AGENT-IMPORTS-SPAFEU` verificó que todos los imports estén al inicio de la clase, sin wildcards, sin imports no usados, sin duplicados y ordenados automáticamente.
 
 
 ---
@@ -79,6 +82,7 @@ Antes de concluir un requisito, verifica:
 | `jwt-security` | JWT, roles, SpringSecurityConfig, autenticación y autorización  | Seguridad de endpoints y acceso |
 | `documentation-openapi-javadoc` | Logging, documentación, convenciones, Swagger/OpenAPI, Javadocs y documentación técnica | Documentación de APIs y código |
 | `testing-junit-mockito` | JUnit 5, Mockito, cobertura y pruebas unitarias | Tests unitarios |
+| `import-rules` | Organización de imports: sin wildcards, sin imports no usados, orden automático, sin imports inline | Refactoring post-modificación de cualquier clase Java |
 
 ---
 

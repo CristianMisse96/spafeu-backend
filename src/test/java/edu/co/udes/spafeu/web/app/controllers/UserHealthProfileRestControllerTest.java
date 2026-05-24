@@ -3,7 +3,6 @@ package edu.co.udes.spafeu.web.app.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -35,6 +34,8 @@ import org.springframework.validation.BindingResult;
 import edu.co.udes.spafeu.web.app.models.dto.MensajeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UserHealthProfileDTO;
+import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
+import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
 import edu.co.udes.spafeu.web.app.models.enums.SeverityEnum;
 import edu.co.udes.spafeu.web.app.service.task.UserHealthProfileServiceTask;
 import edu.co.udes.spafeu.web.app.util.Messages;
@@ -59,6 +60,7 @@ class UserHealthProfileRestControllerTest {
     private UserHealthProfileRestController userHealthProfileRestController;
 
     private UserHealthProfileDTO profileDTO;
+    private UsuarioDTO usuarioResponse;
 
     @BeforeEach
     void setUp() {
@@ -71,6 +73,10 @@ class UserHealthProfileRestControllerTest {
         profileDTO.setSex(edu.co.udes.spafeu.web.app.models.enums.SexEnum.MALE);
         profileDTO.setWeightKg(new BigDecimal("70.50"));
         profileDTO.setHeightM(new BigDecimal("1.75"));
+
+        usuarioResponse = new UsuarioDTO();
+        usuarioResponse.setId(1L);
+        usuarioResponse.setEstadoKyc(EstadoKycEnum.COMPLETO);
 
         lenient().when(messages.getKey(any())).thenReturn("mock");
         when(bindingResult.hasErrors()).thenReturn(false);
@@ -90,13 +96,11 @@ class UserHealthProfileRestControllerTest {
         @Test
         @DisplayName("Debe registrar el perfil de salud exitosamente con datos válidos")
         void registrarPerfilExitoso() {
-            UserHealthProfileDTO savedProfile = new UserHealthProfileDTO();
-            savedProfile.setFullName("Juan Perez");
-            savedProfile.setCampusId(1L);
-            savedProfile.setProgramId(1L);
-            savedProfile.setSemester(3);
+            UsuarioDTO savedProfile = new UsuarioDTO();
+            savedProfile.setId(1L);
+            savedProfile.setEstadoKyc(EstadoKycEnum.COMPLETO);
 
-            RespuestaServicioDTO<UserHealthProfileDTO> respuesta = new RespuestaServicioDTO<>();
+            RespuestaServicioDTO<UsuarioDTO> respuesta = new RespuestaServicioDTO<>();
             respuesta.setOk(true);
             respuesta.setNegocio(savedProfile);
             respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
@@ -105,14 +109,14 @@ class UserHealthProfileRestControllerTest {
             when(userHealthProfileServiceTask.registerHealthProfile(profileDTO, 1L))
                     .thenReturn(new ResponseEntity<>(respuesta, HttpStatus.CREATED));
 
-            ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> result =
+            ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> result =
                     userHealthProfileRestController.registerHealthProfile(profileDTO, bindingResult);
 
             assertNotNull(result);
             assertEquals(HttpStatus.CREATED, result.getStatusCode());
             assertTrue(result.getBody().isOk());
             assertNotNull(result.getBody().getNegocio());
-            assertEquals("Juan Perez", result.getBody().getNegocio().getFullName());
+            assertEquals(EstadoKycEnum.COMPLETO, result.getBody().getNegocio().getEstadoKyc());
             verify(userHealthProfileServiceTask, times(1)).registerHealthProfile(profileDTO, 1L);
             log.info("Test registro exitoso: perfil de salud registrado correctamente");
         }
@@ -122,7 +126,7 @@ class UserHealthProfileRestControllerTest {
         void registrarPerfilValidacionFallida() {
             when(bindingResult.hasErrors()).thenReturn(true);
 
-            ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> result =
+            ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> result =
                     userHealthProfileRestController.registerHealthProfile(profileDTO, bindingResult);
 
             assertNotNull(result);
@@ -139,7 +143,7 @@ class UserHealthProfileRestControllerTest {
         void registrarPerfilDtoNuloConErrores() {
             when(bindingResult.hasErrors()).thenReturn(true);
 
-            ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> result =
+            ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> result =
                     userHealthProfileRestController.registerHealthProfile(null, bindingResult);
 
             assertNotNull(result);

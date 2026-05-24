@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.co.udes.spafeu.web.app.models.dto.MensajeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UserHealthProfileDTO;
+import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.SeverityEnum;
 import edu.co.udes.spafeu.web.app.service.task.UserHealthProfileServiceTask;
 import edu.co.udes.spafeu.web.app.util.Messages;
@@ -44,13 +45,13 @@ public class UserHealthProfileRestController {
         @ApiResponse(responseCode = "401", description = "Token JWT no válido o expirado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PostMapping
-    public ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> registerHealthProfile(
+    @PostMapping(value="/register")
+    public ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> registerHealthProfile(
             @Valid @RequestBody UserHealthProfileDTO dto,
             BindingResult result) {
 
         if (result.hasErrors()) {
-            RespuestaServicioDTO<UserHealthProfileDTO> respuesta = new RespuestaServicioDTO<>();
+            RespuestaServicioDTO<UsuarioDTO> respuesta = new RespuestaServicioDTO<>();
             respuesta.setMensajeDTO(new MensajeDTO(
                 SeverityEnum.ERROR,
                 messages.getKey(SeverityEnum.ERROR.getKey()),

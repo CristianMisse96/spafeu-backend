@@ -4,11 +4,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 
+import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
 import edu.co.udes.spafeu.web.app.models.enums.SexEnum;
 import edu.co.udes.spafeu.web.app.models.enums.converter.SexEnumConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -68,6 +71,10 @@ public class UserHealthProfile {
     
     @Column(name = "BMI", precision = 4, scale = 2, nullable = false)
     private BigDecimal bmi;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ESTADO_KYC", nullable = false, length = 20)
+    private EstadoKycEnum estadoKyc;
     
     public void calculateBmi() {
         if (weightKg != null && heightM != null) {

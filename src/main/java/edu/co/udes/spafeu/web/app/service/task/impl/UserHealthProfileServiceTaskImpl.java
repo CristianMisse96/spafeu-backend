@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import edu.co.udes.spafeu.web.app.models.dto.MensajeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UserHealthProfileDTO;
+import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.SeverityEnum;
 import edu.co.udes.spafeu.web.app.service.entity.UserHealthProfileService;
 import edu.co.udes.spafeu.web.app.service.task.UserHealthProfileServiceTask;
@@ -24,10 +25,10 @@ public class UserHealthProfileServiceTaskImpl implements UserHealthProfileServic
     private final UserHealthProfileService userHealthProfileService;
 
     @Override
-    public ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> registerHealthProfile(UserHealthProfileDTO dto, Long userId) {
-        UserHealthProfileDTO resultado = userHealthProfileService.registerHealthProfile(dto, userId);
+    public ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> registerHealthProfile(UserHealthProfileDTO dto, Long userId) {
+        UsuarioDTO resultado = userHealthProfileService.registerHealthProfile(dto, userId);
 
-        RespuestaServicioDTO<UserHealthProfileDTO> respuesta = new RespuestaServicioDTO<>();
+        RespuestaServicioDTO<UsuarioDTO> respuesta = new RespuestaServicioDTO<>();
         respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
             messages.getKey(KEY_SUCCESS), messages.getKey(PERFIL_SALUD_REGISTRO_EXITOSO)));
         respuesta.setOk(true);

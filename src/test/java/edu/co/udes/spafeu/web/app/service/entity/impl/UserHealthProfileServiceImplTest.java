@@ -1,7 +1,9 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.anyList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,17 +20,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.UserAnswerDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UserHealthProfileDTO;
+import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
+import edu.co.udes.spafeu.web.app.models.entities.CampusProgram;
+import edu.co.udes.spafeu.web.app.models.entities.CampusProgramId;
 import edu.co.udes.spafeu.web.app.models.entities.Option;
 import edu.co.udes.spafeu.web.app.models.entities.Question;
-import edu.co.udes.spafeu.web.app.models.entities.UserAnswer;
 import edu.co.udes.spafeu.web.app.models.entities.UserHealthProfile;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
+import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
 import edu.co.udes.spafeu.web.app.models.enums.SexEnum;
+import edu.co.udes.spafeu.web.app.repositories.CampusProgramRepository;
 import edu.co.udes.spafeu.web.app.repositories.OptionRepository;
 import edu.co.udes.spafeu.web.app.repositories.QuestionRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserAnswerRepository;
@@ -57,7 +62,7 @@ class UserHealthProfileServiceImplTest {
     private OptionRepository optionRepository;
 
     @Mock
-    private ModelMapper modelMapper;
+    private CampusProgramRepository campusProgramRepository;
 
     @InjectMocks
     private UserHealthProfileServiceImpl userHealthProfileService;
@@ -65,17 +70,24 @@ class UserHealthProfileServiceImplTest {
     private Usuario user;
     private UserHealthProfileDTO profileDTO;
     private UserHealthProfile profileEntity;
+    private UsuarioDTO usuarioResponse;
+    private CampusProgram campusProgram;
     private static final Long USER_ID = 1L;
+    private static final Long CAMPUS_ID = 1L;
+    private static final Long PROGRAM_ID = 1L;
 
     @BeforeEach
     void setUp() {
         user = new Usuario();
         user.setId(USER_ID);
 
+        campusProgram = new CampusProgram();
+        campusProgram.setId(new CampusProgramId(CAMPUS_ID, PROGRAM_ID));
+
         profileDTO = new UserHealthProfileDTO();
         profileDTO.setFullName("Juan Perez");
-        profileDTO.setCampusId(1L);
-        profileDTO.setProgramId(1L);
+        profileDTO.setCampusId(CAMPUS_ID);
+        profileDTO.setProgramId(PROGRAM_ID);
         profileDTO.setSemester(3);
         profileDTO.setBirthDate(LocalDate.of(2000, 1, 1));
         profileDTO.setSex(SexEnum.MALE);
@@ -89,6 +101,11 @@ class UserHealthProfileServiceImplTest {
         profileEntity.setSex(SexEnum.MALE);
         profileEntity.setWeightKg(new BigDecimal("70.50"));
         profileEntity.setHeightM(new BigDecimal("1.75"));
+        profileEntity.setCampusProgram(campusProgram);
+
+        usuarioResponse = new UsuarioDTO();
+        usuarioResponse.setId(USER_ID);
+        usuarioResponse.setEstadoKyc(EstadoKycEnum.COMPLETO);
     }
 
     @Nested
@@ -100,9 +117,10 @@ class UserHealthProfileServiceImplTest {
         void debeRegistrarPerfilYRespuestasExitosamente() throws SpafeuException {
             when(usuarioRepository.findById(USER_ID)).thenReturn(java.util.Optional.of(user));
             when(userHealthProfileRepository.existsByUserId(USER_ID)).thenReturn(false);
-            when(modelMapper.map(profileDTO, UserHealthProfile.class)).thenReturn(profileEntity);
-            when(userHealthProfileRepository.save(profileEntity)).thenReturn(profileEntity);
-            when(modelMapper.map(profileEntity, UserHealthProfileDTO.class)).thenReturn(profileDTO);
+            when(campusProgramRepository.findByCampusIdAndProgramId(CAMPUS_ID, PROGRAM_ID))
+                    .thenReturn(java.util.Optional.of(campusProgram));
+            doAnswer(invocation -> invocation.getArgument(0))
+                    .when(userHealthProfileRepository).save(any(UserHealthProfile.class));
 
             Question question = new Question();
             question.setId(1L);
@@ -117,13 +135,14 @@ class UserHealthProfileServiceImplTest {
             answerDTO.setOptionId(1L);
             profileDTO.setAnswers(List.of(answerDTO));
 
-            UserHealthProfileDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
+            UsuarioDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
 
             assertThat(resultado).isNotNull();
-            assertThat(resultado.getFullName()).isEqualTo("Juan Perez");
+            assertThat(resultado.getId()).isEqualTo(USER_ID);
+            assertThat(resultado.getEstadoKyc()).isEqualTo(EstadoKycEnum.COMPLETO);
             verify(usuarioRepository, times(1)).findById(USER_ID);
             verify(userHealthProfileRepository, times(1)).existsByUserId(USER_ID);
-            verify(userHealthProfileRepository, times(1)).save(profileEntity);
+            verify(userHealthProfileRepository, times(1)).save(any(UserHealthProfile.class));
             verify(userAnswerRepository, times(1)).saveAll(anyList());
             log.info("Test registro exitoso: perfil y respuestas guardados correctamente");
         }
@@ -160,15 +179,17 @@ class UserHealthProfileServiceImplTest {
         void debeRegistrarPerfilSinRespuestasCuandoAnswersEsNull() throws SpafeuException {
             when(usuarioRepository.findById(USER_ID)).thenReturn(java.util.Optional.of(user));
             when(userHealthProfileRepository.existsByUserId(USER_ID)).thenReturn(false);
-            when(modelMapper.map(profileDTO, UserHealthProfile.class)).thenReturn(profileEntity);
-            when(userHealthProfileRepository.save(profileEntity)).thenReturn(profileEntity);
-            when(modelMapper.map(profileEntity, UserHealthProfileDTO.class)).thenReturn(profileDTO);
+            when(campusProgramRepository.findByCampusIdAndProgramId(CAMPUS_ID, PROGRAM_ID))
+                    .thenReturn(java.util.Optional.of(campusProgram));
+            doAnswer(invocation -> invocation.getArgument(0))
+                    .when(userHealthProfileRepository).save(any(UserHealthProfile.class));
 
             profileDTO.setAnswers(null);
 
-            UserHealthProfileDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
+            UsuarioDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
 
             assertThat(resultado).isNotNull();
+            assertThat(resultado.getEstadoKyc()).isEqualTo(EstadoKycEnum.COMPLETO);
             verify(userAnswerRepository, times(0)).saveAll(anyList());
             log.info("Test sin respuestas: perfil registrado sin guardar respuestas");
         }
@@ -178,15 +199,17 @@ class UserHealthProfileServiceImplTest {
         void debeRegistrarPerfilSinRespuestasCuandoAnswersVacia() throws SpafeuException {
             when(usuarioRepository.findById(USER_ID)).thenReturn(java.util.Optional.of(user));
             when(userHealthProfileRepository.existsByUserId(USER_ID)).thenReturn(false);
-            when(modelMapper.map(profileDTO, UserHealthProfile.class)).thenReturn(profileEntity);
-            when(userHealthProfileRepository.save(profileEntity)).thenReturn(profileEntity);
-            when(modelMapper.map(profileEntity, UserHealthProfileDTO.class)).thenReturn(profileDTO);
+            when(campusProgramRepository.findByCampusIdAndProgramId(CAMPUS_ID, PROGRAM_ID))
+                    .thenReturn(java.util.Optional.of(campusProgram));
+            doAnswer(invocation -> invocation.getArgument(0))
+                    .when(userHealthProfileRepository).save(any(UserHealthProfile.class));
 
             profileDTO.setAnswers(List.of());
 
-            UserHealthProfileDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
+            UsuarioDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
 
             assertThat(resultado).isNotNull();
+            assertThat(resultado.getEstadoKyc()).isEqualTo(EstadoKycEnum.COMPLETO);
             verify(userAnswerRepository, times(0)).saveAll(anyList());
             log.info("Test respuestas vacías: perfil registrado sin guardar respuestas");
         }

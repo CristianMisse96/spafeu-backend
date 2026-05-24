@@ -5,9 +5,10 @@ import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.PREFIX_TO
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.SECRET_KEY;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -17,13 +18,10 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
-import edu.co.udes.spafeu.web.app.util.SimpleGrantedAuthorityMixin;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -91,12 +89,13 @@ public class JWTServiceImpl implements JWTService {
 	@Override
 	public Collection<? extends GrantedAuthority> getRoles(String token) throws IOException {
 		
-		Object roles= getClaims(token).get("authorities");
-		
-		return Arrays.asList( 
-				new ObjectMapper()
-				.addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityMixin.class)
-				.readValue(roles.toString().getBytes(), SimpleGrantedAuthority[].class));
+		@SuppressWarnings("unchecked")
+		List<Map<String, String>> roles =
+	            (List<Map<String, String>>) getClaims(token).get("authorities");
+
+	    return roles.stream()
+	            .map(role -> new SimpleGrantedAuthority(role.get("authority")))
+	            .toList();
 	}
 
 	@Override

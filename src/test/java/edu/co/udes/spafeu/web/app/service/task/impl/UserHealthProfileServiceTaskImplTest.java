@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UserHealthProfileDTO;
+import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
+import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
 import edu.co.udes.spafeu.web.app.models.enums.SeverityEnum;
 import edu.co.udes.spafeu.web.app.service.entity.UserHealthProfileService;
 import edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil;
@@ -39,6 +41,7 @@ class UserHealthProfileServiceTaskImplTest {
     private UserHealthProfileServiceTaskImpl userHealthProfileServiceTask;
 
     private UserHealthProfileDTO profileDTO;
+    private UsuarioDTO usuarioResponse;
 
     @BeforeEach
     void setUp() {
@@ -47,6 +50,10 @@ class UserHealthProfileServiceTaskImplTest {
         profileDTO.setCampusId(1L);
         profileDTO.setProgramId(1L);
         profileDTO.setSemester(3);
+
+        usuarioResponse = new UsuarioDTO();
+        usuarioResponse.setId(1L);
+        usuarioResponse.setEstadoKyc(EstadoKycEnum.COMPLETO);
     }
 
     @Nested
@@ -56,20 +63,20 @@ class UserHealthProfileServiceTaskImplTest {
         @Test
         @DisplayName("Debe retornar ResponseEntity con RespuestaServicioDTO y HttpStatus.CREATED")
         void debeRetornarResponseEntityConRespuestaServicio() {
-            when(userHealthProfileService.registerHealthProfile(profileDTO, 1L)).thenReturn(profileDTO);
+            when(userHealthProfileService.registerHealthProfile(profileDTO, 1L)).thenReturn(usuarioResponse);
             when(messages.getKey(MensajesKeyConstantesUtil.KEY_SUCCESS)).thenReturn("Éxito");
             when(messages.getKey(MensajesKeyConstantesUtil.PERFIL_SALUD_REGISTRO_EXITOSO)).thenReturn("Perfil registrado");
 
-            ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> response =
+            ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> response =
                 userHealthProfileServiceTask.registerHealthProfile(profileDTO, 1L);
 
             assertThat(response).isNotNull();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
-            RespuestaServicioDTO<UserHealthProfileDTO> body = response.getBody();
+            RespuestaServicioDTO<UsuarioDTO> body = response.getBody();
             assertThat(body).isNotNull();
             assertThat(body.isOk()).isTrue();
-            assertThat(body.getNegocio()).isEqualTo(profileDTO);
+            assertThat(body.getNegocio()).isEqualTo(usuarioResponse);
             assertThat(body.getMensajeDTO()).isNotNull();
             assertThat(body.getMensajeDTO().getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
             assertThat(body.getMensajeDTO().getSummary()).isEqualTo("Éxito");
@@ -80,20 +87,18 @@ class UserHealthProfileServiceTaskImplTest {
         }
 
         @Test
-        @DisplayName("Debe construir RespuestaServicioDTO con ok=true y datos del perfil")
+        @DisplayName("Debe construir RespuestaServicioDTO con ok=true y datos del usuario")
         void debeConstruirRespuestaServicioCorrectamente() {
-            when(userHealthProfileService.registerHealthProfile(profileDTO, 1L)).thenReturn(profileDTO);
+            when(userHealthProfileService.registerHealthProfile(profileDTO, 1L)).thenReturn(usuarioResponse);
             when(messages.getKey(MensajesKeyConstantesUtil.KEY_SUCCESS)).thenReturn("Éxito");
             when(messages.getKey(MensajesKeyConstantesUtil.PERFIL_SALUD_REGISTRO_EXITOSO)).thenReturn("Perfil registrado");
 
-            ResponseEntity<RespuestaServicioDTO<UserHealthProfileDTO>> response =
+            ResponseEntity<RespuestaServicioDTO<UsuarioDTO>> response =
                 userHealthProfileServiceTask.registerHealthProfile(profileDTO, 1L);
 
-            RespuestaServicioDTO<UserHealthProfileDTO> body = response.getBody();
-            assertThat(body.getNegocio().getFullName()).isEqualTo("Juan Perez");
-            assertThat(body.getNegocio().getCampusId()).isEqualTo(1L);
-            assertThat(body.getNegocio().getProgramId()).isEqualTo(1L);
-            assertThat(body.getNegocio().getSemester()).isEqualTo(3);
+            RespuestaServicioDTO<UsuarioDTO> body = response.getBody();
+            assertThat(body.getNegocio().getId()).isEqualTo(1L);
+            assertThat(body.getNegocio().getEstadoKyc()).isEqualTo(EstadoKycEnum.COMPLETO);
             log.info("Test construcción de respuesta: campos del DTO mapeados correctamente");
         }
     }

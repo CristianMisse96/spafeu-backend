@@ -61,8 +61,8 @@ import lombok.Setter;
 	     )
 	     private List<Role> roles;
 
-	     @OneToOne(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-	     private UsuarioKyc usuarioKyc;
+	     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	     private UserHealthProfile usuarioKyc;
 
 	     public Usuario() {
 			 this.roles = new ArrayList<>();
