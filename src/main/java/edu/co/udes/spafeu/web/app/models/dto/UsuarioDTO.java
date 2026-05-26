@@ -1,9 +1,9 @@
 package edu.co.udes.spafeu.web.app.models.dto;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -36,8 +36,6 @@ public class UsuarioDTO implements Serializable{
 	@Size(max = 80)
 	private String password;
 	
-	//@NotBlank
-	@Size(max = 45)
 	private String nombreCompleto;
 	
 	//@JsonProperty(access = Access.WRITE_ONLY)
@@ -49,6 +47,11 @@ public class UsuarioDTO implements Serializable{
     private EstadoKycEnum estadoKyc;
 
     private NivelActividadFisicaEnum nivelActividadFisica;
+    
+    private BigDecimal weightKg;
+    private BigDecimal heightM;
+    private BigDecimal bmi;
+
 
     public UsuarioDTO() {
 		this.roles=new ArrayList<>();

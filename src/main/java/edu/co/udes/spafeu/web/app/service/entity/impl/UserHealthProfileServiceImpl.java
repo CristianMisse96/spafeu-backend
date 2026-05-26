@@ -90,7 +90,10 @@ public class UserHealthProfileServiceImpl implements UserHealthProfileService {
         }
 
         UsuarioDTO response = new UsuarioDTO();
-        response.setId(user.getId());
+        response.setNombreCompleto(savedProfile.getFullName());
+        response.setBmi(savedProfile.getBmi());
+        response.setHeightM(savedProfile.getHeightM());
+        response.setWeightKg(savedProfile.getWeightKg());
         response.setEstadoKyc(savedProfile.getEstadoKyc());
         response.setNivelActividadFisica(savedProfile.getNivelActividadFisica());
 
