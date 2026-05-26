@@ -2,9 +2,12 @@ package edu.co.udes.spafeu.web.app.models.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
@@ -23,4 +26,8 @@ public class MobileApplication {
 
     @Column(name = "NAME", nullable = false, unique = true, length = 100)
     private String name;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_EXERCISE")
+    private Exercise exercise;
 }

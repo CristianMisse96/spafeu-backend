@@ -21,6 +21,7 @@ public class ProtocolObjective {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID_PROTOCOL_OBJECTIVE")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

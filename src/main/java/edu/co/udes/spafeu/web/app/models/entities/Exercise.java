@@ -1,5 +1,8 @@
 package edu.co.udes.spafeu.web.app.models.entities;
 
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,10 +50,9 @@ public class Exercise {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ID_DURATION", nullable = false)
     private DurationType duracion;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_APPLICATION")
-    private MobileApplication application;
+    
+    @OneToMany(mappedBy = "exercise",cascade = {CascadeType.MERGE, CascadeType.PERSIST},orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<MobileApplication> applications;
 
     @Column(name = "PHOTO_URL", length = 500)
     private String foto;
