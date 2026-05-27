@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
+import edu.co.udes.spafeu.web.app.models.entities.UserHealthProfile;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import io.jsonwebtoken.Claims;
@@ -118,6 +120,15 @@ public class JWTServiceImpl implements JWTService {
 				dto.setId(u.getId());
 				dto.setFoto(u.getFoto());
 				dto.setEstadoKyc(u.getEstadoKyc());
+				
+				UserHealthProfile uh = u.getUsuarioKyc();
+				
+				if(Objects.nonNull(uh)) {
+					dto.setNivelActividadFisica(uh.getNivelActividadFisica());
+					dto.setWeightKg(uh.getWeightKg());
+					dto.setHeightM(uh.getHeightM());
+					dto.setBmi(uh.getBmi());
+				}
 			});
 		
 		return dto;
