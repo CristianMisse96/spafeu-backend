@@ -128,6 +128,7 @@ public class JWTServiceImpl implements JWTService {
 					dto.setWeightKg(uh.getWeightKg());
 					dto.setHeightM(uh.getHeightM());
 					dto.setBmi(uh.getBmi());
+					dto.setNombreCompleto(uh.getFullName());
 				}
 			});
 		

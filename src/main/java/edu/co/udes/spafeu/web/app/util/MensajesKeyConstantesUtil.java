@@ -30,4 +30,10 @@ public class MensajesKeyConstantesUtil {
 	public static final String PERFIL_SALUD_REGISTRO_EXITOSO = "perfil.salud.registro.exitoso";
 	public static final String ERROR_PERFIL_SALUD_YA_EXISTE = "error.perfil.salud.ya.existe";
 	public static final String ERROR_CAMPUS_PROGRAM_NO_ENCONTRADO = "error.campus.program.no.encontrado";
+
+	// ============================================================
+	// Keys del módulo de Ejercicios (Exercise)
+	// ============================================================
+	public static final String ERROR_EXERCISE_NO_ENCONTRADO = "error.exercise.no.encontrado";
+	public static final String ERROR_EXERCISE_NIVEL_NO_PERMITIDO = "error.exercise.nivel.no.permitido";
 }
