@@ -54,6 +54,8 @@ public class SpringSecurityConfig {
                         // Módulo Questionnaire - requiere rol USER para listar cuestionarios
                         .requestMatchers(HttpMethod.GET, "/api/questionnaires/all").permitAll()//.hasRole(ROLE_USER)
                         .requestMatchers(HttpMethod.GET, "/api/campuses").permitAll()
+                        // Módulo Physical Activity Protocols - endpoint público para listar protocolos
+                        .requestMatchers(HttpMethod.GET, "/api/physical-activity-protocols").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/health-profile/register").hasRole(ROLE_USER)
                         .anyRequest().authenticated())
                 .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService))
