@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.MensajeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
@@ -61,6 +62,24 @@ public class PhysicalActivityProtocolServiceTaskImpl implements PhysicalActivity
     public ResponseEntity<RespuestaServicioDTO<PhysicalActivityProtocolDTO>> findAllByNivelActividadFisicaWithoutExercises(NivelActividadFisicaEnum nivelActividadFisica) {
         PhysicalActivityProtocolDTO resultado = physicalActivityProtocolService.findAllByNivelActividadFisicaWithoutExercises(nivelActividadFisica);
         RespuestaServicioDTO<PhysicalActivityProtocolDTO> respuesta = new RespuestaServicioDTO<>();
+        respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
+            messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
+        respuesta.setOk(true);
+        respuesta.setNegocio(resultado);
+        return new ResponseEntity<>(respuesta, HttpStatus.OK);
+    }
+
+    /**
+     * Obtiene los ejercicios agrupados por tipo de actividad filtrados por nivel de actividad fisica
+     * y construye la respuesta de servicio con mensaje de exito.
+     *
+     * @param nivelActividadFisica el nivel de actividad fisica por el cual filtrar
+     * @return ResponseEntity con {@link RespuestaServicioDTO} conteniendo la lista de ejercicios agrupados
+     */
+    @Override
+    public ResponseEntity<RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>>> findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum nivelActividadFisica) {
+        List<ExerciseGroupedByActivityTypeDTO> resultado = physicalActivityProtocolService.findExercisesByNivelActividadFisicaGroupedByActivityType(nivelActividadFisica);
+        RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>> respuesta = new RespuestaServicioDTO<>();
         respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
             messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
         respuesta.setOk(true);

@@ -3,6 +3,7 @@ package edu.co.udes.spafeu.web.app.service.entity;
 import java.util.List;
 
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 
@@ -30,4 +31,14 @@ public interface PhysicalActivityProtocolService {
      * @throws SpafeuException si ocurre un error de negocio
      */
     PhysicalActivityProtocolDTO findAllByNivelActividadFisicaWithoutExercises(NivelActividadFisicaEnum nivelActividadFisica) throws SpafeuException;
+
+    /**
+     * Obtiene los ejercicios filtrados por nivel de actividad fisica y los agrupa
+     * por tipo de actividad fisica.
+     *
+     * @param nivelActividadFisica el nivel de actividad fisica por el cual filtrar
+     * @return Lista de {@link ExerciseGroupedByActivityTypeDTO} ordenada alfabeticamente por tipo de actividad
+     * @throws SpafeuException si ocurre un error de negocio
+     */
+    List<ExerciseGroupedByActivityTypeDTO> findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum nivelActividadFisica) throws SpafeuException;
 }

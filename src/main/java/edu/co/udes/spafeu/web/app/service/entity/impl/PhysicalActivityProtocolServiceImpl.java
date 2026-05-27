@@ -1,18 +1,25 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
+import edu.co.udes.spafeu.web.app.models.entities.Exercise;
 import edu.co.udes.spafeu.web.app.models.entities.PhysicalActivityProtocol;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
+import edu.co.udes.spafeu.web.app.repositories.ExerciseRepository;
 import edu.co.udes.spafeu.web.app.repositories.PhysicalActivityProtocolRepository;
 import edu.co.udes.spafeu.web.app.service.entity.PhysicalActivityProtocolService;
-import lombok.RequiredArgsConstructor;
 
 /**
  * <p>Titulo: Proyecto SPAFEU</p>
@@ -26,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class PhysicalActivityProtocolServiceImpl implements PhysicalActivityProtocolService {
 
     private final PhysicalActivityProtocolRepository physicalActivityProtocolRepository;
+    private final ExerciseRepository exerciseRepository;
     private final ModelMapper modelMapper;
 
     /**
@@ -61,5 +69,31 @@ public class PhysicalActivityProtocolServiceImpl implements PhysicalActivityProt
         return modelMapper.map(protocol, PhysicalActivityProtocolDTO.class);
     }
 
-  
+    /**
+     * Obtiene los ejercicios filtrados por nivel de actividad fisica y los agrupa
+     * por tipo de actividad fisica, ordenando alfabeticamente por el nombre del tipo.
+     *
+     * @param nivelActividadFisica el nivel de actividad fisica por el cual filtrar
+     * @return Lista de {@link ExerciseGroupedByActivityTypeDTO} ordenada alfabeticamente por tipo de actividad
+     * @throws SpafeuException si ocurre un error de negocio
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ExerciseGroupedByActivityTypeDTO> findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum nivelActividadFisica) throws SpafeuException {
+        List<Exercise> exercises = exerciseRepository.findByProtocolNivelActividadFisica(nivelActividadFisica);
+
+        Map<String, List<ExerciseDTO>> grouped = exercises.stream()
+                .map(exercise -> modelMapper.map(exercise, ExerciseDTO.class))
+                .collect(Collectors.groupingBy(dto -> dto.getTipoActividadFisica().getName()));
+
+        return grouped.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> {
+                    ExerciseGroupedByActivityTypeDTO dto = new ExerciseGroupedByActivityTypeDTO();
+                    dto.setActivityType(entry.getKey());
+                    dto.setExercises(entry.getValue());
+                    return dto;
+                })
+                .toList();
+    }
 }

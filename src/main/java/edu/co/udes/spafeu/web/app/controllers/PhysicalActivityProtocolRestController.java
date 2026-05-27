@@ -1,5 +1,14 @@
 package edu.co.udes.spafeu.web.app.controllers;
 
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,16 +16,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.service.task.PhysicalActivityProtocolServiceTask;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Protocolos de Actividad Física", description = "Endpoints para la gestión de protocolos de actividad física")
 @CrossOrigin(origins = {"*"})
@@ -39,5 +43,19 @@ public class PhysicalActivityProtocolRestController {
             @Parameter(description = "Nivel de actividad física para filtrar los protocolos", required = true)
             @RequestParam NivelActividadFisicaEnum nivelActividadFisica) {
         return physicalActivityProtocolServiceTask.findAllByNivelActividadFisicaWithoutExercises(nivelActividadFisica);
+    }
+
+    @Operation(summary = "Listar ejercicios agrupados por tipo de actividad filtrados por nivel")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ejercicios agrupados obtenidos exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Parámetro de nivel de actividad física no válido o faltante"),
+            @ApiResponse(responseCode = "401", description = "Token JWT no válido o expirado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/exercises")
+    public ResponseEntity<RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>>> findExercisesGroupedByActivityType(
+            @Parameter(description = "Nivel de actividad física para filtrar los ejercicios", required = true)
+            @RequestParam NivelActividadFisicaEnum nivelActividadFisica) {
+        return physicalActivityProtocolServiceTask.findExercisesByNivelActividadFisicaGroupedByActivityType(nivelActividadFisica);
     }
 }

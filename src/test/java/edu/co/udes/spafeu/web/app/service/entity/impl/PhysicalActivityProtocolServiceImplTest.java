@@ -19,11 +19,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
+import edu.co.udes.spafeu.web.app.models.dto.ActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.DurationTypeDTO;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ProtocolObjectiveDTO;
+import edu.co.udes.spafeu.web.app.models.entities.ActivityType;
+import edu.co.udes.spafeu.web.app.models.entities.Exercise;
 import edu.co.udes.spafeu.web.app.models.entities.PhysicalActivityProtocol;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
+import edu.co.udes.spafeu.web.app.repositories.ExerciseRepository;
 import edu.co.udes.spafeu.web.app.repositories.PhysicalActivityProtocolRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +42,9 @@ class PhysicalActivityProtocolServiceImplTest {
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Mock
+    private ExerciseRepository exerciseRepository;
 
     @InjectMocks
     private PhysicalActivityProtocolServiceImpl physicalActivityProtocolService;
@@ -155,6 +164,91 @@ class PhysicalActivityProtocolServiceImplTest {
             assertThat(resultado).isNull();
             verify(physicalActivityProtocolRepository, times(1)).findAllByNivelActividadFisicaWithoutExercises(NivelActividadFisicaEnum.NIVEL_1);
             log.info("Test findAllByNivelActividadFisicaWithoutExercises sin datos: null retornado");
+        }
+    }
+
+    @Nested
+    @DisplayName("findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum)")
+    class FindExercisesByNivelActividadFisicaGroupedByActivityType {
+
+        @Test
+        @DisplayName("Debe retornar ejercicios agrupados por tipo de actividad correctamente")
+        void debeRetornarEjerciciosAgrupadosPorTipoDeActividad() throws Exception {
+            ActivityType cardioType = new ActivityType();
+            cardioType.setId(1L);
+            cardioType.setName("Cardio");
+
+            ActivityType fuerzaType = new ActivityType();
+            fuerzaType.setId(2L);
+            fuerzaType.setName("Fuerza");
+
+            Exercise exerciseCardio = new Exercise();
+            exerciseCardio.setId(1L);
+            exerciseCardio.setName("Correr");
+            exerciseCardio.setTipoActividadFisica(cardioType);
+
+            Exercise exerciseFuerza = new Exercise();
+            exerciseFuerza.setId(2L);
+            exerciseFuerza.setName("Levantar pesas");
+            exerciseFuerza.setTipoActividadFisica(fuerzaType);
+
+            List<Exercise> exercises = List.of(exerciseCardio, exerciseFuerza);
+
+            ActivityTypeDTO cardioTypeDTO = new ActivityTypeDTO();
+            cardioTypeDTO.setId(1L);
+            cardioTypeDTO.setName("Cardio");
+
+            ActivityTypeDTO fuerzaTypeDTO = new ActivityTypeDTO();
+            fuerzaTypeDTO.setId(2L);
+            fuerzaTypeDTO.setName("Fuerza");
+
+            ExerciseDTO exerciseCardioDTO = new ExerciseDTO();
+            exerciseCardioDTO.setId(1L);
+            exerciseCardioDTO.setName("Correr");
+            exerciseCardioDTO.setTipoActividadFisica(cardioTypeDTO);
+
+            ExerciseDTO exerciseFuerzaDTO = new ExerciseDTO();
+            exerciseFuerzaDTO.setId(2L);
+            exerciseFuerzaDTO.setName("Levantar pesas");
+            exerciseFuerzaDTO.setTipoActividadFisica(fuerzaTypeDTO);
+
+            when(exerciseRepository.findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3)).thenReturn(exercises);
+            when(modelMapper.map(exerciseCardio, ExerciseDTO.class)).thenReturn(exerciseCardioDTO);
+            when(modelMapper.map(exerciseFuerza, ExerciseDTO.class)).thenReturn(exerciseFuerzaDTO);
+
+            List<ExerciseGroupedByActivityTypeDTO> resultado =
+                    physicalActivityProtocolService.findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado).hasSize(2);
+
+            assertThat(resultado.get(0).getActivityType()).isEqualTo("Cardio");
+            assertThat(resultado.get(0).getExercises()).hasSize(1);
+            assertThat(resultado.get(0).getExercises().get(0).getName()).isEqualTo("Correr");
+
+            assertThat(resultado.get(1).getActivityType()).isEqualTo("Fuerza");
+            assertThat(resultado.get(1).getExercises()).hasSize(1);
+            assertThat(resultado.get(1).getExercises().get(0).getName()).isEqualTo("Levantar pesas");
+
+            verify(exerciseRepository, times(1)).findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3);
+            verify(modelMapper, times(1)).map(exerciseCardio, ExerciseDTO.class);
+            verify(modelMapper, times(1)).map(exerciseFuerza, ExerciseDTO.class);
+            log.info("Test findExercisesByNivelActividadFisicaGroupedByActivityType: retorna {} grupos ordenados", resultado.size());
+        }
+
+        @Test
+        @DisplayName("Debe retornar lista vacía cuando no hay ejercicios para el nivel")
+        void debeRetornarListaVaciaCuandoNoHayEjercicios() throws Exception {
+            when(exerciseRepository.findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3)).thenReturn(List.of());
+
+            List<ExerciseGroupedByActivityTypeDTO> resultado =
+                    physicalActivityProtocolService.findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado).isEmpty();
+
+            verify(exerciseRepository, times(1)).findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3);
+            log.info("Test findExercisesByNivelActividadFisicaGroupedByActivityType sin datos: lista vacía retornada");
         }
     }
 }

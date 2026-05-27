@@ -56,6 +56,8 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/campuses").permitAll()
                         // Módulo Physical Activity Protocols - endpoint público para listar protocolos
                         .requestMatchers(HttpMethod.GET, "/api/physical-activity-protocols").permitAll()
+                        // Módulo Physical Activity Protocols - endpoint público para listar ejercicios
+                        .requestMatchers(HttpMethod.GET, "/api/physical-activity-protocols/exercises").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/health-profile/register").hasRole(ROLE_USER)
                         .anyRequest().authenticated())
                 .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService))

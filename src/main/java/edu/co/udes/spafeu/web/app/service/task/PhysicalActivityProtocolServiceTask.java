@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
@@ -31,4 +32,12 @@ public interface PhysicalActivityProtocolServiceTask {
      * @return ResponseEntity con la lista de PhysicalActivityProtocolDTO filtrada
      */
     ResponseEntity<RespuestaServicioDTO<PhysicalActivityProtocolDTO>> findAllByNivelActividadFisicaWithoutExercises(NivelActividadFisicaEnum nivelActividadFisica);
+
+    /**
+     * Obtiene los ejercicios agrupados por tipo de actividad filtrados por nivel de actividad fisica.
+     *
+     * @param nivelActividadFisica el nivel de actividad fisica por el cual filtrar
+     * @return ResponseEntity con la lista de ExerciseGroupedByActivityTypeDTO agrupada
+     */
+    ResponseEntity<RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>>> findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum nivelActividadFisica);
 }

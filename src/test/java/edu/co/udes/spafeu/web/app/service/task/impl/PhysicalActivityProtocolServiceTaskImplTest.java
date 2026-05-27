@@ -20,7 +20,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import edu.co.udes.spafeu.web.app.models.dto.ActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.DurationTypeDTO;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseGroupedByActivityTypeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.PhysicalActivityProtocolDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ProtocolObjectiveDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
@@ -179,6 +182,78 @@ class PhysicalActivityProtocolServiceTaskImplTest {
 
             verify(physicalActivityProtocolService, times(1)).findAllByNivelActividadFisicaWithoutExercises(NivelActividadFisicaEnum.NIVEL_1);
             log.info("Test findAllByNivelActividadFisicaWithoutExercises sin datos: retorna 200 OK con lista vacía");
+        }
+    }
+
+    @Nested
+    @DisplayName("findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum)")
+    class FindExercisesByNivelActividadFisicaGroupedByActivityType {
+
+        @Test
+        @DisplayName("Debe retornar 200 OK con ejercicios agrupados en RespuestaServicioDTO")
+        void debeRetornar200ConEjerciciosAgrupados() throws Exception {
+            ActivityTypeDTO cardioTypeDTO = new ActivityTypeDTO();
+            cardioTypeDTO.setId(1L);
+            cardioTypeDTO.setName("Cardio");
+
+            ExerciseDTO exerciseDTO = new ExerciseDTO();
+            exerciseDTO.setId(1L);
+            exerciseDTO.setName("Correr");
+            exerciseDTO.setTipoActividadFisica(cardioTypeDTO);
+
+            ExerciseGroupedByActivityTypeDTO grupo = new ExerciseGroupedByActivityTypeDTO();
+            grupo.setActivityType("Cardio");
+            grupo.setExercises(List.of(exerciseDTO));
+
+            List<ExerciseGroupedByActivityTypeDTO> grupos = List.of(grupo);
+
+            when(physicalActivityProtocolService.findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3)).thenReturn(grupos);
+            when(messages.getKey(MensajesKeyConstantesUtil.KEY_SUCCESS)).thenReturn("Éxito");
+            when(messages.getKey(MensajesKeyConstantesUtil.SUCCESS_DETALLE)).thenReturn("Operación exitosa");
+
+            ResponseEntity<RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>>> response =
+                    physicalActivityProtocolServiceTask.findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.isOk()).isTrue();
+            assertThat(body.getNegocio()).isNotNull();
+            assertThat(body.getNegocio()).hasSize(1);
+            assertThat(body.getNegocio().get(0).getActivityType()).isEqualTo("Cardio");
+            assertThat(body.getNegocio().get(0).getExercises()).hasSize(1);
+            assertThat(body.getMensajeDTO()).isNotNull();
+            assertThat(body.getMensajeDTO().getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
+
+            verify(physicalActivityProtocolService, times(1)).findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3);
+            log.info("Test findExercisesByNivelActividadFisicaGroupedByActivityType: retorna 200 OK con {} grupos", body.getNegocio().size());
+        }
+
+        @Test
+        @DisplayName("Debe retornar 200 OK con lista vacía cuando no hay ejercicios")
+        void debeRetornar200ConListaVacia() throws Exception {
+            when(physicalActivityProtocolService.findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3)).thenReturn(List.of());
+            when(messages.getKey(MensajesKeyConstantesUtil.KEY_SUCCESS)).thenReturn("Éxito");
+            when(messages.getKey(MensajesKeyConstantesUtil.SUCCESS_DETALLE)).thenReturn("Operación exitosa");
+
+            ResponseEntity<RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>>> response =
+                    physicalActivityProtocolServiceTask.findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+            RespuestaServicioDTO<List<ExerciseGroupedByActivityTypeDTO>> body = response.getBody();
+            assertThat(body).isNotNull();
+            assertThat(body.isOk()).isTrue();
+            assertThat(body.getNegocio()).isNotNull();
+            assertThat(body.getNegocio()).isEmpty();
+            assertThat(body.getMensajeDTO()).isNotNull();
+            assertThat(body.getMensajeDTO().getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
+
+            verify(physicalActivityProtocolService, times(1)).findExercisesByNivelActividadFisicaGroupedByActivityType(NivelActividadFisicaEnum.NIVEL_3);
+            log.info("Test findExercisesByNivelActividadFisicaGroupedByActivityType sin datos: retorna 200 OK con lista vacía");
         }
     }
 }
