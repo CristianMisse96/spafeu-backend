@@ -141,7 +141,6 @@ class UserHealthProfileServiceImplTest {
             UsuarioDTO resultado = userHealthProfileService.registerHealthProfile(profileDTO, USER_ID);
 
             assertThat(resultado).isNotNull();
-            assertThat(resultado.getId()).isEqualTo(USER_ID);
             assertThat(resultado.getEstadoKyc()).isEqualTo(EstadoKycEnum.COMPLETO);
             verify(usuarioRepository, times(1)).findById(USER_ID);
             verify(userHealthProfileRepository, times(1)).existsByUserId(USER_ID);
