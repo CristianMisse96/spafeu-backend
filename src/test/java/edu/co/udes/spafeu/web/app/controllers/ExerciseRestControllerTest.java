@@ -62,7 +62,7 @@ class ExerciseRestControllerTest {
         @Test
         @DisplayName("Debe retornar 200 OK y delegar al ServiceTask cuando el ejercicio existe")
         void debeRetornar200CuandoExiste() {
-            when(exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3)).thenReturn(serviceTaskResponse);
+            when(exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L)).thenReturn(serviceTaskResponse);
 
             ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseRestController.findById(1L, NivelActividadFisicaEnum.NIVEL_3);
 
@@ -73,7 +73,7 @@ class ExerciseRestControllerTest {
             assertThat(response.getBody().getNegocio().getId()).isEqualTo(1L);
             assertThat(response.getBody().getNegocio().getName()).isEqualTo("Sentadillas");
 
-            verify(exerciseServiceTask, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            verify(exerciseServiceTask, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
             log.info("Test GET findById con éxito: retorna 200 OK con ExerciseDTO id={}", response.getBody().getNegocio().getId());
         }
 
@@ -85,7 +85,7 @@ class ExerciseRestControllerTest {
             respuestaVacia.setNegocio(new ExerciseDTO());
             respuestaVacia.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS, "Éxito", "Sin datos"));
 
-            when(exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3)).thenReturn(new ResponseEntity<>(respuestaVacia, HttpStatus.OK));
+            when(exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L)).thenReturn(new ResponseEntity<>(respuestaVacia, HttpStatus.OK));
 
             ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseRestController.findById(1L, NivelActividadFisicaEnum.NIVEL_3);
 
@@ -96,20 +96,20 @@ class ExerciseRestControllerTest {
             assertThat(response.getBody().getNegocio()).isNotNull();
             assertThat(response.getBody().getNegocio().getId()).isNull();
 
-            verify(exerciseServiceTask, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            verify(exerciseServiceTask, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
             log.info("Test GET findById sin datos: retorna 200 OK con ExerciseDTO vacío");
         }
 
         @Test
         @DisplayName("Debe pasar el identificador y nivel correctamente al ServiceTask")
         void debePasarIdYNivelCorrectamente() {
-            when(exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3)).thenReturn(serviceTaskResponse);
+            when(exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L)).thenReturn(serviceTaskResponse);
 
             ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseRestController.findById(1L, NivelActividadFisicaEnum.NIVEL_3);
 
             assertThat(response).isNotNull();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            verify(exerciseServiceTask, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            verify(exerciseServiceTask, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
             log.info("Test GET findById: parámetro id=1L y nivel=NIVEL_3 pasados correctamente al ServiceTask");
         }
     }

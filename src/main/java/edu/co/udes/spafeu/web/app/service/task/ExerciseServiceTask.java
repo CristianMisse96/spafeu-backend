@@ -20,7 +20,8 @@ public interface ExerciseServiceTask {
      *
      * @param id el identificador del ejercicio
      * @param nivelActividadFisica el nivel de actividad fisica esperado
+     * @param userId 
      * @return ResponseEntity con {@link RespuestaServicioDTO} conteniendo el ejercicio encontrado
      */
-    ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> findById(Long id, NivelActividadFisicaEnum nivelActividadFisica);
+    ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> findById(Long id, NivelActividadFisicaEnum nivelActividadFisica, Long userId);
 }

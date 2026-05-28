@@ -17,9 +17,10 @@ public interface ExerciseService {
      *
      * @param id el identificador del ejercicio
      * @param nivelActividadFisica el nivel de actividad fisica esperado
+     * @param userId 
      * @return {@link ExerciseDTO} con la informacion del ejercicio encontrado
      * @throws SpafeuException si ocurre un error de negocio, el ejercicio no existe
      *                         o no pertenece al nivel de actividad fisica indicado
      */
-    ExerciseDTO findById(Long id, NivelActividadFisicaEnum nivelActividadFisica) throws SpafeuException;
+    ExerciseDTO findById(Long id, NivelActividadFisicaEnum nivelActividadFisica, Long userId) throws SpafeuException;
 }

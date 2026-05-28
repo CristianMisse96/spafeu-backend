@@ -10,6 +10,7 @@ import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.entities.Exercise;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.repositories.ExerciseRepository;
+import edu.co.udes.spafeu.web.app.repositories.UserExerciseSessionRepository;
 import edu.co.udes.spafeu.web.app.service.entity.ExerciseService;
 import edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil;
 
@@ -25,6 +26,7 @@ import edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil;
 public class ExerciseServiceImpl implements ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
+    private final UserExerciseSessionRepository userExerciseSessionRepository;
     private final ModelMapper modelMapper;
 
     /**
@@ -38,12 +40,16 @@ public class ExerciseServiceImpl implements ExerciseService {
      */
     @Override
     @Transactional(readOnly = true)
-    public ExerciseDTO findById(Long id, NivelActividadFisicaEnum nivelActividadFisica) throws SpafeuException {
+    public ExerciseDTO findById(Long id, NivelActividadFisicaEnum nivelActividadFisica, Long userId) throws SpafeuException {
         Exercise exercise = exerciseRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new SpafeuException(MensajesKeyConstantesUtil.ERROR_EXERCISE_NO_ENCONTRADO));
 
         if (exercise.getProtocol() == null || !nivelActividadFisica.equals(exercise.getProtocol().getNivelActividadFisica())) {
             throw new SpafeuException(MensajesKeyConstantesUtil.ERROR_EXERCISE_NIVEL_NO_PERMITIDO);
+        }
+        
+        if(userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoTrue(userId, id)) {
+        	throw new SpafeuException(MensajesKeyConstantesUtil.ERROR_EXERCISE_COMPLETO);
         }
 
         return modelMapper.map(exercise, ExerciseDTO.class);

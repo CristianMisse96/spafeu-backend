@@ -73,7 +73,7 @@ class ExerciseServiceImplTest {
             when(exerciseRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(exerciseEntity));
             when(modelMapper.map(exerciseEntity, ExerciseDTO.class)).thenReturn(exerciseDTO);
 
-            ExerciseDTO resultado = exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            ExerciseDTO resultado = exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.getId()).isEqualTo(1L);
@@ -91,7 +91,7 @@ class ExerciseServiceImplTest {
             when(exerciseRepository.findByIdWithDetails(999L)).thenReturn(Optional.empty());
 
             SpafeuException ex = assertThrows(SpafeuException.class,
-                    () -> exerciseService.findById(999L, NivelActividadFisicaEnum.NIVEL_3));
+                    () -> exerciseService.findById(999L, NivelActividadFisicaEnum.NIVEL_3, 1L));
 
             assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_EXERCISE_NO_ENCONTRADO);
             verify(exerciseRepository, times(1)).findByIdWithDetails(999L);
@@ -104,7 +104,7 @@ class ExerciseServiceImplTest {
             when(exerciseRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(exerciseEntity));
 
             SpafeuException ex = assertThrows(SpafeuException.class,
-                    () -> exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_1));
+                    () -> exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_1, 1L));
 
             assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_EXERCISE_NIVEL_NO_PERMITIDO);
             verify(exerciseRepository, times(1)).findByIdWithDetails(1L);
@@ -122,7 +122,7 @@ class ExerciseServiceImplTest {
             when(exerciseRepository.findByIdWithDetails(2L)).thenReturn(Optional.of(exerciseSinProtocolo));
 
             SpafeuException ex = assertThrows(SpafeuException.class,
-                    () -> exerciseService.findById(2L, NivelActividadFisicaEnum.NIVEL_3));
+                    () -> exerciseService.findById(2L, NivelActividadFisicaEnum.NIVEL_3, 1L));
 
             assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_EXERCISE_NIVEL_NO_PERMITIDO);
             verify(exerciseRepository, times(1)).findByIdWithDetails(2L);

@@ -58,11 +58,11 @@ class ExerciseServiceTaskImplTest {
         @Test
         @DisplayName("Debe retornar 200 OK con ExerciseDTO en RespuestaServicioDTO")
         void debeRetornar200ConExerciseDto() throws Exception {
-            when(exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3)).thenReturn(exerciseDTO);
+            when(exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L)).thenReturn(exerciseDTO);
             when(messages.getKey(KEY_SUCCESS)).thenReturn("Éxito");
             when(messages.getKey(SUCCESS_DETALLE)).thenReturn("Operación exitosa");
 
-            ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
 
             assertThat(response).isNotNull();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -78,7 +78,7 @@ class ExerciseServiceTaskImplTest {
             assertThat(body.getMensajeDTO().getSummary()).isEqualTo("Éxito");
             assertThat(body.getMensajeDTO().getDetail()).isEqualTo("Operación exitosa");
 
-            verify(exerciseService, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            verify(exerciseService, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
             verify(messages, times(1)).getKey(KEY_SUCCESS);
             verify(messages, times(1)).getKey(SUCCESS_DETALLE);
             log.info("Test findById con éxito: retorna 200 OK con ExerciseDTO id={}", body.getNegocio().getId());
@@ -88,11 +88,11 @@ class ExerciseServiceTaskImplTest {
         @DisplayName("Debe retornar 200 OK con ExerciseDTO vacío cuando no hay datos")
         void debeRetornar200ConExerciseDtoVacio() throws Exception {
             ExerciseDTO emptyDTO = new ExerciseDTO();
-            when(exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3)).thenReturn(emptyDTO);
+            when(exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L)).thenReturn(emptyDTO);
             when(messages.getKey(KEY_SUCCESS)).thenReturn("Éxito");
             when(messages.getKey(SUCCESS_DETALLE)).thenReturn("Operación exitosa");
 
-            ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> response = exerciseServiceTask.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
 
             assertThat(response).isNotNull();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -105,7 +105,7 @@ class ExerciseServiceTaskImplTest {
             assertThat(body.getMensajeDTO()).isNotNull();
             assertThat(body.getMensajeDTO().getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
 
-            verify(exerciseService, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3);
+            verify(exerciseService, times(1)).findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
             log.info("Test findById con datos vacíos: retorna 200 OK con ExerciseDTO vacío");
         }
     }

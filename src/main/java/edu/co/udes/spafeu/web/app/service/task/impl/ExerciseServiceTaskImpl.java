@@ -40,8 +40,8 @@ public class ExerciseServiceTaskImpl implements ExerciseServiceTask {
      * @return ResponseEntity con {@link RespuestaServicioDTO} conteniendo el ejercicio encontrado
      */
     @Override
-    public ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> findById(Long id, NivelActividadFisicaEnum nivelActividadFisica) {
-        ExerciseDTO resultado = exerciseService.findById(id, nivelActividadFisica);
+    public ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> findById(Long id, NivelActividadFisicaEnum nivelActividadFisica, Long userId) {
+        ExerciseDTO resultado = exerciseService.findById(id, nivelActividadFisica, userId);
         RespuestaServicioDTO<ExerciseDTO> respuesta = new RespuestaServicioDTO<>();
         respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
             messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
