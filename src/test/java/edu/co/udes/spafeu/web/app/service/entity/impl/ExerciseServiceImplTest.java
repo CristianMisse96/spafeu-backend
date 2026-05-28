@@ -2,11 +2,15 @@ package edu.co.udes.spafeu.web.app.service.entity.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -15,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,8 +29,12 @@ import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.entities.Exercise;
 import edu.co.udes.spafeu.web.app.models.entities.PhysicalActivityProtocol;
+import edu.co.udes.spafeu.web.app.models.entities.UserExerciseSession;
+import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.repositories.ExerciseRepository;
+import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
+import edu.co.udes.spafeu.web.app.repositories.UserExerciseSessionRepository;
 import edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,6 +46,12 @@ class ExerciseServiceImplTest {
     private ExerciseRepository exerciseRepository;
 
     @Mock
+    private UserExerciseSessionRepository userExerciseSessionRepository;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
+
+    @Mock
     private ModelMapper modelMapper;
 
     @InjectMocks
@@ -44,6 +59,7 @@ class ExerciseServiceImplTest {
 
     private Exercise exerciseEntity;
     private ExerciseDTO exerciseDTO;
+    private Usuario usuario;
 
     @BeforeEach
     void setUp() {
@@ -61,6 +77,9 @@ class ExerciseServiceImplTest {
         exerciseDTO.setId(1L);
         exerciseDTO.setName("Sentadillas");
         exerciseDTO.setDescripcionEjercicio("Ejercicio de fuerza para piernas");
+
+        usuario = new Usuario();
+        usuario.setId(1L);
     }
 
     @Nested
@@ -71,6 +90,9 @@ class ExerciseServiceImplTest {
         @DisplayName("Debe retornar ExerciseDTO cuando el ejercicio existe y coincide el nivel")
         void debeRetornarExerciseDtoCuandoExisteYNivelCoincide() throws Exception {
             when(exerciseRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(exerciseEntity));
+            when(userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L)).thenReturn(false);
+            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+            when(userExerciseSessionRepository.save(any(UserExerciseSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
             when(modelMapper.map(exerciseEntity, ExerciseDTO.class)).thenReturn(exerciseDTO);
 
             ExerciseDTO resultado = exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
@@ -81,8 +103,26 @@ class ExerciseServiceImplTest {
             assertThat(resultado.getDescripcionEjercicio()).isEqualTo("Ejercicio de fuerza para piernas");
 
             verify(exerciseRepository, times(1)).findByIdWithDetails(1L);
+            verify(userExerciseSessionRepository, times(1)).existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L);
+            verify(usuarioRepository, times(1)).findById(1L);
+            verify(userExerciseSessionRepository, times(1)).save(any(UserExerciseSession.class));
             verify(modelMapper, times(1)).map(exerciseEntity, ExerciseDTO.class);
             log.info("Test findById con éxito: retorna ExerciseDTO con id={}", resultado.getId());
+        }
+
+        @Test
+        @DisplayName("Debe guardar UserExerciseSession cuando el ejercicio es válido")
+        void debeGuardarUserExerciseSessionCuandoEjercicioEsValido() throws Exception {
+            when(exerciseRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(exerciseEntity));
+            when(userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L)).thenReturn(false);
+            when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+            when(userExerciseSessionRepository.save(any(UserExerciseSession.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(modelMapper.map(exerciseEntity, ExerciseDTO.class)).thenReturn(exerciseDTO);
+
+            exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L);
+
+            verify(userExerciseSessionRepository, times(1)).save(any(UserExerciseSession.class));
+            log.info("Test findById guarda sesión: userExerciseSessionRepository.save llamado exactamente una vez");
         }
 
         @Test
@@ -127,6 +167,116 @@ class ExerciseServiceImplTest {
             assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_EXERCISE_NIVEL_NO_PERMITIDO);
             verify(exerciseRepository, times(1)).findByIdWithDetails(2L);
             log.info("Test findById protocolo nulo: lanza SpafeuException con mensaje='{}'", ex.getMensaje());
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando el ejercicio ya fue completado por el usuario")
+        void debeLanzarSpafeuExceptionCuandoEjercicioYaCompletado() {
+            when(exerciseRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(exerciseEntity));
+            when(userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L)).thenReturn(true);
+
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L));
+
+            assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_EXERCISE_COMPLETO);
+            verify(exerciseRepository, times(1)).findByIdWithDetails(1L);
+            verify(userExerciseSessionRepository, times(1)).existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L);
+            log.info("Test findById ejercicio completado: lanza SpafeuException con mensaje='{}'", ex.getMensaje());
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando el usuario no existe")
+        void debeLanzarSpafeuExceptionCuandoUsuarioNoExiste() {
+            when(exerciseRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(exerciseEntity));
+            when(userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L)).thenReturn(false);
+            when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
+
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L));
+
+            assertThat(ex.getMensaje()).isEqualTo("error.usuario.kyc.user.no.existe");
+            verify(exerciseRepository, times(1)).findByIdWithDetails(1L);
+            verify(userExerciseSessionRepository, times(1)).existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L);
+            verify(usuarioRepository, times(1)).findById(1L);
+            log.info("Test findById usuario no existe: lanza SpafeuException con mensaje='{}'", ex.getMensaje());
+        }
+    }
+
+    @Nested
+    @DisplayName("findCompletedExerciseIdsByUserId(Long)")
+    class FindCompletedExerciseIdsByUserId {
+
+        @Test
+        @DisplayName("Debe retornar Set con IDs de ejercicios completados")
+        void debeRetornarSetConIds() throws SpafeuException {
+            Set<Long> expected = new HashSet<>(Set.of(1L, 2L, 3L));
+            when(userExerciseSessionRepository.findCompletedExerciseIdsByUserId(1L, true)).thenReturn(expected);
+
+            Set<Long> resultado = exerciseService.findCompletedExerciseIdsByUserId(1L);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado).containsExactlyInAnyOrder(1L, 2L, 3L);
+            verify(userExerciseSessionRepository, times(1)).findCompletedExerciseIdsByUserId(1L, true);
+            log.info("Test findCompletedExerciseIdsByUserId con éxito: retorna {} IDs", resultado.size());
+        }
+
+        @Test
+        @DisplayName("Debe retornar Set vacío cuando no hay ejercicios completados")
+        void debeRetornarSetVacio() throws SpafeuException {
+            Set<Long> expected = new HashSet<>();
+            when(userExerciseSessionRepository.findCompletedExerciseIdsByUserId(1L, true)).thenReturn(expected);
+
+            Set<Long> resultado = exerciseService.findCompletedExerciseIdsByUserId(1L);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado).isEmpty();
+            verify(userExerciseSessionRepository, times(1)).findCompletedExerciseIdsByUserId(1L, true);
+            log.info("Test findCompletedExerciseIdsByUserId sin datos: retorna set vacío");
+        }
+    }
+
+    @Nested
+    @DisplayName("completeExerciseSession(Long, Long)")
+    class CompleteExerciseSession {
+
+        @Test
+        @DisplayName("Debe completar la sesión activa calculando minutos realizados")
+        void debeCompletarSesionActivaCalculandoMinutos() throws SpafeuException {
+            UserExerciseSession session = new UserExerciseSession();
+            session.setId(1L);
+            session.setFechaInicio(LocalDateTime.now().minusMinutes(10));
+            session.setCompletado(false);
+            session.setMinutosRealizados(0);
+
+            when(userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L))
+                    .thenReturn(Optional.of(session));
+            when(userExerciseSessionRepository.save(any(UserExerciseSession.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            exerciseService.completeExerciseSession(1L, 1L);
+
+            ArgumentCaptor<UserExerciseSession> captor = ArgumentCaptor.forClass(UserExerciseSession.class);
+            verify(userExerciseSessionRepository, times(1)).save(captor.capture());
+            UserExerciseSession saved = captor.getValue();
+
+            assertThat(saved.getCompletado()).isTrue();
+            assertThat(saved.getFechaFin()).isNotNull();
+            assertThat(saved.getMinutosRealizados()).isGreaterThanOrEqualTo(10);
+            log.info("Test completeExerciseSession con éxito: sesión completada con {} minutos", saved.getMinutosRealizados());
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando no existe sesión activa")
+        void debeLanzarExcepcionCuandoNoExisteSesionActiva() {
+            when(userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L))
+                    .thenReturn(Optional.empty());
+
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> exerciseService.completeExerciseSession(1L, 1L));
+
+            assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_EXERCISE_SESSION_NO_ENCONTRADA);
+            verify(userExerciseSessionRepository, times(1)).findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L);
+            log.info("Test completeExerciseSession sin sesión: lanza SpafeuException con mensaje='{}'", ex.getMensaje());
         }
     }
 }

@@ -37,4 +37,6 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_EXERCISE_NO_ENCONTRADO = "error.exercise.no.encontrado";
 	public static final String ERROR_EXERCISE_NIVEL_NO_PERMITIDO = "error.exercise.nivel.no.permitido";
 	public static final String ERROR_EXERCISE_COMPLETO = "error.exercise.completo";
+	public static final String SUCCESS_EXERCISE_COMPLETADO = "success.exercise.completado";
+	public static final String ERROR_EXERCISE_SESSION_NO_ENCONTRADA = "error.exercise.session.no.encontrada";
 }

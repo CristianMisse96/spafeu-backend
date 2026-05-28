@@ -2,8 +2,12 @@ package edu.co.udes.spafeu.web.app.service.task.impl;
 
 import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_SUCCESS;
 import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_DETALLE;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_EXERCISE_COMPLETADO;
+
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -47,6 +51,42 @@ public class ExerciseServiceTaskImpl implements ExerciseServiceTask {
             messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
         respuesta.setOk(true);
         respuesta.setNegocio(resultado);
+        return new ResponseEntity<>(respuesta, HttpStatus.OK);
+    }
+
+    /**
+     * Obtiene los identificadores de ejercicios completados por un usuario
+     * y construye la respuesta de servicio con mensaje de exito.
+     *
+     * @param userId el identificador del usuario
+     * @return ResponseEntity con {@link RespuestaServicioDTO} conteniendo el set de identificadores
+     */
+    @Override
+    public ResponseEntity<RespuestaServicioDTO<Set<Long>>> findCompletedExerciseIdsByUserId(Long userId) {
+        Set<Long> resultado = exerciseService.findCompletedExerciseIdsByUserId(userId);
+        RespuestaServicioDTO<Set<Long>> respuesta = new RespuestaServicioDTO<>();
+        respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
+            messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_DETALLE)));
+        respuesta.setOk(true);
+        respuesta.setNegocio(resultado);
+        return new ResponseEntity<>(respuesta, HttpStatus.OK);
+    }
+
+    /**
+     * Completa la sesion de ejercicio activa de un usuario calculando
+     * los minutos realizados y construye la respuesta de servicio con mensaje de exito.
+     *
+     * @param exerciseId el identificador del ejercicio
+     * @param userId el identificador del usuario
+     * @return ResponseEntity con {@link RespuestaServicioDTO} indicando la finalizacion del ejercicio
+     */
+    @Override
+    public ResponseEntity<RespuestaServicioDTO<Void>> completeExerciseSession(Long exerciseId, Long userId) {
+        exerciseService.completeExerciseSession(exerciseId, userId);
+        RespuestaServicioDTO<Void> respuesta = new RespuestaServicioDTO<>();
+        respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
+            messages.getKey(KEY_SUCCESS), messages.getKey(SUCCESS_EXERCISE_COMPLETADO)));
+        respuesta.setOk(true);
         return new ResponseEntity<>(respuesta, HttpStatus.OK);
     }
 }

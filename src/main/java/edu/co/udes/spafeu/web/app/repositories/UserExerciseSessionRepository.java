@@ -1,5 +1,6 @@
 package edu.co.udes.spafeu.web.app.repositories;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,8 @@ public interface UserExerciseSessionRepository extends JpaRepository<UserExercis
 	Set<Long> findCompletedExerciseIdsByUserId(@Param("userId")  Long userId, @Param("complete")  boolean complete);
 	
 	boolean existsByUserIdAndExerciseIdAndCompletadoTrue(Long userId, Long exerciseId);
+
+	boolean existsByUserIdAndExerciseIdAndCompletadoFalse(Long userId, Long id);
+
+	Optional<UserExerciseSession> findByUserIdAndExerciseIdAndCompletadoFalse(Long userId, Long exerciseId);
 }

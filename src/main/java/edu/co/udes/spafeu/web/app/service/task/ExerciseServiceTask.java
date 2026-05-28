@@ -1,5 +1,7 @@
 package edu.co.udes.spafeu.web.app.service.task;
 
+import java.util.Set;
+
 import org.springframework.http.ResponseEntity;
 
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
@@ -24,4 +26,23 @@ public interface ExerciseServiceTask {
      * @return ResponseEntity con {@link RespuestaServicioDTO} conteniendo el ejercicio encontrado
      */
     ResponseEntity<RespuestaServicioDTO<ExerciseDTO>> findById(Long id, NivelActividadFisicaEnum nivelActividadFisica, Long userId);
+
+    /**
+     * Obtiene los identificadores de ejercicios completados por un usuario
+     * y construye la respuesta de servicio con mensaje de exito.
+     *
+     * @param userId el identificador del usuario
+     * @return ResponseEntity con {@link RespuestaServicioDTO} conteniendo el set de identificadores
+     */
+    ResponseEntity<RespuestaServicioDTO<Set<Long>>> findCompletedExerciseIdsByUserId(Long userId);
+
+    /**
+     * Completa la sesion de ejercicio activa de un usuario calculando
+     * los minutos realizados y construye la respuesta de servicio con mensaje de exito.
+     *
+     * @param exerciseId el identificador del ejercicio
+     * @param userId el identificador del usuario
+     * @return ResponseEntity con {@link RespuestaServicioDTO} indicando la finalizacion del ejercicio
+     */
+    ResponseEntity<RespuestaServicioDTO<Void>> completeExerciseSession(Long exerciseId, Long userId);
 }

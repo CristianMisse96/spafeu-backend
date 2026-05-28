@@ -1,6 +1,11 @@
 package edu.co.udes.spafeu.web.app.service.entity.impl;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,8 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.entities.Exercise;
+import edu.co.udes.spafeu.web.app.models.entities.UserExerciseSession;
+import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.repositories.ExerciseRepository;
+import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserExerciseSessionRepository;
 import edu.co.udes.spafeu.web.app.service.entity.ExerciseService;
 import edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil;
@@ -27,6 +35,7 @@ public class ExerciseServiceImpl implements ExerciseService {
 
     private final ExerciseRepository exerciseRepository;
     private final UserExerciseSessionRepository userExerciseSessionRepository;
+    private final UsuarioRepository usuarioRepository;
     private final ModelMapper modelMapper;
 
     /**
@@ -39,7 +48,7 @@ public class ExerciseServiceImpl implements ExerciseService {
      * @throws SpafeuException si el ejercicio no existe o no pertenece al nivel indicado
      */
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public ExerciseDTO findById(Long id, NivelActividadFisicaEnum nivelActividadFisica, Long userId) throws SpafeuException {
         Exercise exercise = exerciseRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new SpafeuException(MensajesKeyConstantesUtil.ERROR_EXERCISE_NO_ENCONTRADO));
@@ -51,7 +60,54 @@ public class ExerciseServiceImpl implements ExerciseService {
         if(userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoTrue(userId, id)) {
         	throw new SpafeuException(MensajesKeyConstantesUtil.ERROR_EXERCISE_COMPLETO);
         }
+        
+        if(!userExerciseSessionRepository.existsByUserIdAndExerciseIdAndCompletadoFalse(userId, id)) {
+	        Usuario usuario = usuarioRepository.findById(userId)
+	                .orElseThrow(() -> new SpafeuException("error.usuario.kyc.user.no.existe"));
+	
+	        UserExerciseSession session = new UserExerciseSession();
+	        session.setUser(usuario);
+	        session.setExercise(exercise);
+	        session.setFechaInicio(LocalDateTime.now());
+	        session.setMinutosRealizados(0);
+	        session.setCompletado(false);
+	        userExerciseSessionRepository.save(session);
+        }
 
         return modelMapper.map(exercise, ExerciseDTO.class);
+    }
+
+    /**
+     * Obtiene los identificadores de ejercicios completados por un usuario.
+     *
+     * @param userId el identificador del usuario
+     * @return {@link Set} con los identificadores de ejercicios completados
+     * @throws SpafeuException si ocurre un error de negocio
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Long> findCompletedExerciseIdsByUserId(Long userId) throws SpafeuException {
+        return userExerciseSessionRepository.findCompletedExerciseIdsByUserId(userId, true);
+    }
+
+    /**
+     * Completa la sesión de ejercicio activa de un usuario calculando
+     * los minutos realizados entre la fecha de inicio y la fecha de fin.
+     *
+     * @param exerciseId el identificador del ejercicio
+     * @param userId el identificador del usuario
+     * @throws SpafeuException si no existe una sesión activa para completar
+     */
+    @Override
+    @Transactional
+    public void completeExerciseSession(Long exerciseId, Long userId) throws SpafeuException {
+        UserExerciseSession session = userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(userId, exerciseId)
+                .orElseThrow(() -> new SpafeuException(MensajesKeyConstantesUtil.ERROR_EXERCISE_SESSION_NO_ENCONTRADA));
+
+        session.setFechaFin(LocalDateTime.now());
+        long minutos = ChronoUnit.MINUTES.between(session.getFechaInicio(), session.getFechaFin());
+        session.setMinutosRealizados((int) minutos);
+        session.setCompletado(true);
+        userExerciseSessionRepository.save(session);
     }
 }

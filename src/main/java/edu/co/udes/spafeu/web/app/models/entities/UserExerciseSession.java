@@ -25,7 +25,7 @@ public class UserExerciseSession {
 	private Long id;
 	
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "ID_USER", nullable = false)
+	@JoinColumn(name = "ID_USERS", nullable = false)
 	private Usuario user;
 	
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -35,7 +35,7 @@ public class UserExerciseSession {
 	@Column(name = "START_DATE", nullable = false)
 	private LocalDateTime fechaInicio;
 	
-	@Column(name = "END_DATE", nullable = false)
+	@Column(name = "END_DATE")
 	private LocalDateTime fechaFin;
 	
 	@Column(name = "MINUTES_COMPLETED", nullable = false)
