@@ -1,5 +1,7 @@
 package edu.co.udes.spafeu.web.app.repositories;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -19,4 +21,16 @@ public interface UserExerciseSessionRepository extends JpaRepository<UserExercis
 	boolean existsByUserIdAndExerciseIdAndCompletadoFalse(Long userId, Long id);
 
 	Optional<UserExerciseSession> findByUserIdAndExerciseIdAndCompletadoFalse(Long userId, Long exerciseId);
+
+	@Query("SELECT COUNT(s) FROM UserExerciseSession s WHERE s.user.id = :userId AND s.completado = true")
+	Long countCompletedSessionsByUserId(@Param("userId") Long userId);
+
+	@Query("SELECT COALESCE(SUM(s.minutosRealizados), 0) FROM UserExerciseSession s WHERE s.user.id = :userId AND s.completado = true")
+	Integer sumMinutesCompletedByUserId(@Param("userId") Long userId);
+
+	@Query("SELECT MAX(s.fechaInicio) FROM UserExerciseSession s WHERE s.user.id = :userId AND s.completado = true")
+	Optional<LocalDateTime> findLastActivityDateByUserId(@Param("userId") Long userId);
+
+	@Query("SELECT s FROM UserExerciseSession s WHERE s.user.id = :userId AND s.completado = true ORDER BY s.fechaInicio DESC")
+	List<UserExerciseSession> findRecentCompletedSessionsByUserId(@Param("userId") Long userId);
 }
