@@ -75,7 +75,6 @@ class UserServiceImplTest {
         usuario.setUsername(USERNAME_EXISTENTE);
         usuario.setEmail(EMAIL_EXISTENTE);
         usuario.setPassword("passwordEncriptado");
-        usuario.setNombreCompleto("Usuario Test");
         usuario.setEnabled(true);
         usuario.setFoto(FOTO_ANTERIOR);
 

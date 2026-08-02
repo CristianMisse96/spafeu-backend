@@ -21,7 +21,7 @@ public class MobileApplication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID_APPLICATION")
+    @Column(name = "ID_MOBILE_APPLICATION")
     private Long id;
 
     @Column(name = "NAME", nullable = false, unique = true, length = 100)

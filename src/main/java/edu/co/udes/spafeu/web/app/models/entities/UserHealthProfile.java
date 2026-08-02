@@ -4,10 +4,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.models.enums.SexEnum;
-import edu.co.udes.spafeu.web.app.models.enums.converter.NivelActividadFisicaEnumConverter;
 import edu.co.udes.spafeu.web.app.models.enums.converter.SexEnumConverter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -74,12 +76,14 @@ public class UserHealthProfile {
     @Column(name = "BMI", precision = 4, scale = 2, nullable = false)
     private BigDecimal bmi;
 
-    @Convert(converter = NivelActividadFisicaEnumConverter.class)
-    @Column(name = "NIVEL_ACTIVIDAD_FISICA", length = 10, nullable = true)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "NIVEL_ACTIVIDAD_FISICA", columnDefinition = "nivel_actividad_fisica_type", nullable = false)
     private NivelActividadFisicaEnum nivelActividadFisica;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "ESTADO_KYC", nullable = false, length = 20)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "ESTADO_KYC", columnDefinition = "estado_kyc_type", nullable = false)
     private EstadoKycEnum estadoKyc;
     
     public void calculateBmi() {

@@ -24,8 +24,8 @@ import lombok.Setter;
 	 @Getter
 	 @Setter
 	 @Table(name = "users", uniqueConstraints = {
-	      @UniqueConstraint(columnNames = "USERNAME", name = "USERS_USERNAME_UNIQUE"),
-	      @UniqueConstraint(columnNames = "EMAIL", name = "USERS_EMAIL_UNIQUE"),
+	      @UniqueConstraint(columnNames = "USERNAME", name = "UQ_USERS_USERNAME"),
+	      @UniqueConstraint(columnNames = "EMAIL", name = "UQ_USERS_EMAIL"),
 	 })
 	 public class Usuario {
 
@@ -42,9 +42,6 @@ import lombok.Setter;
 
 	     @Column(name = "PASSWORD", nullable = false, length = 80)
 	     private String password;
-
-	     @Column(name = "NOMBRE_COMPLETO", length = 45)
-	     private String nombreCompleto;
 
 	     @Column(name = "FOTO", length = 200)
 	     private String foto;

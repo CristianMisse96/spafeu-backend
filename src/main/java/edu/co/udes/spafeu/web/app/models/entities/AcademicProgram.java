@@ -24,7 +24,5 @@ public class AcademicProgram {
 
     @Column(name = "NAME", nullable = false, length = 100)
     private String name;
-
-    @Column(name = "CODE", length = 20)
-    private String code;
+    
 }

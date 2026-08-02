@@ -85,6 +85,7 @@ El backend está construido con una **arquitectura limpia por capas**, garantiza
 |------------|---------|-----------|
 | **PostgreSQL** | 16+ | Base de datos relacional principal |
 | **Hibernate** | 6.x | Implementación JPA |
+| **spafeu-bd** | — | Scripts y configuración de la base de datos para producción ([repositorio](https://github.com/CristianMisse96/spafeu-bd)) |
 
 ### Seguridad
 | Tecnología | Versión | Propósito |
@@ -235,6 +236,8 @@ CREATE DATABASE spafeu_db;
 CREATE USER spafeu_user WITH PASSWORD 'tu_password_seguro';
 GRANT ALL PRIVILEGES ON DATABASE spafeu_db TO spafeu_user;
 ```
+
+> **Producción**: los scripts y configuración de la base de datos para el entorno productivo se gestionan en el repositorio [`spafeu-bd`](https://github.com/CristianMisse96/spafeu-bd).
 
 ### 3. Configurar variables de entorno
 

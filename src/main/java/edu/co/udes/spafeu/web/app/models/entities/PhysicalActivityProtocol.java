@@ -2,12 +2,15 @@ package edu.co.udes.spafeu.web.app.models.entities;
 
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
-import edu.co.udes.spafeu.web.app.models.enums.converter.NivelActividadFisicaEnumConverter;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,8 +33,9 @@ public class PhysicalActivityProtocol {
     @Column(name = "ID_PROTOCOL")
     private Long id;
 
-    @Convert(converter = NivelActividadFisicaEnumConverter.class)
-    @Column(name = "NIVEL_ACTIVIDAD_FISICA", nullable = false, length = 15)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "NIVEL_ACTIVIDAD_FISICA", columnDefinition = "nivel_actividad_fisica_type", nullable = false)
     private NivelActividadFisicaEnum nivelActividadFisica;
 
     @Column(name = "NAME", nullable = false, length = 150)

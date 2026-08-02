@@ -25,11 +25,6 @@ public enum NivelActividadFisicaEnum {
         this.label = label;
     }
 
-    /**
-     * Devuelve la etiqueta legible del nivel de actividad física.
-     *
-     * @return la etiqueta del nivel
-     */
     public String getLabel() {
         return label;
     }

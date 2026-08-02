@@ -1,6 +1,9 @@
 package edu.co.udes.spafeu.web.app.models.entities;
 
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import edu.co.udes.spafeu.web.app.models.enums.RolEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +20,7 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "roles", uniqueConstraints = {
-		 @UniqueConstraint(columnNames = "ROL", name = "ROLES_ROL_UNIQUE"),
+		 @UniqueConstraint(columnNames = "ROL", name = "UQ_ROLES_ROL"),
 })
 @Getter
 @Setter
@@ -29,8 +32,9 @@ public class Role {
 	@Column(name = "ID_ROLES")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ROL", nullable = false, length = 30)
+	@Enumerated(EnumType.STRING)
+	@JdbcTypeCode(SqlTypes.NAMED_ENUM)
+	@Column(name = "ROL", columnDefinition = "role_type",nullable = false)
     private RolEnum rol;
     
     public Role(RolEnum rol) {

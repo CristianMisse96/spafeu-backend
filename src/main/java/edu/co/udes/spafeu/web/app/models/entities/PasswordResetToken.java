@@ -2,6 +2,9 @@ package edu.co.udes.spafeu.web.app.models.entities;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import edu.co.udes.spafeu.web.app.models.enums.TokenStatusEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,7 +24,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "password_reset_tokens", uniqueConstraints = {
-	    @UniqueConstraint(columnNames = "TOKEN", name = "PASSWORD_RESET_TOKEN_UNIQUE")
+	    @UniqueConstraint(columnNames = "TOKEN", name = "UQ_TOKEN_PASSWORD_RESET_TOKEN")
 	    })
 public class PasswordResetToken {
 	
@@ -41,6 +44,7 @@ public class PasswordResetToken {
 	    private LocalDateTime expiration;
 
 	    @Enumerated(EnumType.STRING)
-	    @Column(name="STATUS", nullable = false)
+	    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+	    @Column(name = "STATUS", columnDefinition = "token_status_type", nullable = false)
 	    private TokenStatusEnum status;
 }
