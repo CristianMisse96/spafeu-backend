@@ -1,16 +1,18 @@
 package edu.co.udes.spafeu.web.app.auth.service.impl;
 
-import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.EXPIRATION_DATE;
+import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.ACCESS_TOKEN_EXPIRATION_DATE;
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.PREFIX_TOKEN;
-import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.SECRET_KEY;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import javax.crypto.SecretKey;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class JWTServiceImpl implements JWTService {
 	
 	private final UsuarioRepository repository;
+	private final SecretKey jwtSecretKey;
 
 	@Override
 	public String create(Authentication auth, UsuarioDTO userDTO) throws IOException {
@@ -56,10 +59,33 @@ public class JWTServiceImpl implements JWTService {
 		return Jwts.builder()
 						.subject(username)
 						.claims(claims)
-						.expiration(new Date(System.currentTimeMillis() + EXPIRATION_DATE))
+						.expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_DATE))
 						.issuedAt(new Date())
-						.signWith(SECRET_KEY)
+						.signWith(jwtSecretKey)
 						.compact();
+	}
+
+	@Override
+	public String createAccessToken(UsuarioDTO userDTO) {
+		Collection<SimpleGrantedAuthority> roles = Optional.ofNullable(userDTO.getRoles())
+				.orElseGet(ArrayList::new)
+				.stream()
+				.map(role -> new SimpleGrantedAuthority(role.getRol().name()))
+				.toList();
+
+		Claims claims = Jwts.claims()
+				.add("authorities", roles)
+				.add("username", userDTO.getUsername())
+				.add("id", userDTO.getId())
+				.build();
+
+		return Jwts.builder()
+				.subject(userDTO.getUsername())
+				.claims(claims)
+				.expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_DATE))
+				.issuedAt(new Date())
+				.signWith(jwtSecretKey)
+				.compact();
 	}
 
 	@Override
@@ -77,7 +103,7 @@ public class JWTServiceImpl implements JWTService {
 	@Override
 	public Claims getClaims(String token) {
 		return Jwts.parser()
-				.verifyWith(SECRET_KEY).build()
+				.verifyWith(jwtSecretKey).build()
 				.parseSignedClaims(resolve(token))
 				.getPayload();
 	}

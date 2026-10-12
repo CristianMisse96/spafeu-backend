@@ -39,4 +39,11 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_EXERCISE_COMPLETO = "error.exercise.completo";
 	public static final String SUCCESS_EXERCISE_COMPLETADO = "success.exercise.completado";
 	public static final String ERROR_EXERCISE_SESSION_NO_ENCONTRADA = "error.exercise.session.no.encontrada";
+
+	// ============================================================
+	// Keys del módulo de Refresh Token
+	// ============================================================
+	public static final String SUCCESS_REFRESH_TOKEN = "success.refresh.token";
+	public static final String SUCCESS_LOGOUT = "success.logout";
+	public static final String ERROR_REFRESH_TOKEN_COOKIE_NO_PRESENTE = "error.refresh.token.cookie.no.presente";
 }
