@@ -38,6 +38,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
@@ -84,6 +85,7 @@ class JWTAuthenticationFilterTest {
     @BeforeEach
     void setUp() throws Exception {
         filter = new JWTAuthenticationFilter(authenticationManager, jWTService, refreshTokenService, false);
+        ReflectionTestUtils.setField(filter, "refreshTokenPath", "/api/session");
         stringWriter = new StringWriter();
         printWriter = new PrintWriter(stringWriter);
 
@@ -252,7 +254,8 @@ class JWTAuthenticationFilterTest {
             ArgumentCaptor<String> cookieCaptor = ArgumentCaptor.forClass(String.class);
             verify(response).addHeader(eq(HttpHeaders.SET_COOKIE), cookieCaptor.capture());
             String cookieValue = cookieCaptor.getValue();
-            assertThat(cookieValue).startsWith("refreshToken=refresh-token-test; Path=/api/auth");
+            assertThat(cookieValue).startsWith("refreshToken=refresh-token-test");
+            assertThat(cookieValue).contains("Path=/api/session");
             assertThat(cookieValue).contains("Max-Age=604800");
             assertThat(cookieValue).contains("HttpOnly");
             assertThat(cookieValue).contains("SameSite=Lax");

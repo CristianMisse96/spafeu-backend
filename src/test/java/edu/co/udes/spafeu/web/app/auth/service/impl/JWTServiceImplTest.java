@@ -2,18 +2,21 @@ package edu.co.udes.spafeu.web.app.auth.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import javax.crypto.SecretKey;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +24,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -56,7 +58,6 @@ class JWTServiceImplTest {
     @Mock
     private HttpServletResponse response;
 
-    @InjectMocks
     private JWTServiceImpl jwtService;
 
     private Authentication auth;
@@ -66,6 +67,10 @@ class JWTServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        SecretKey jwtSecretKey = Keys.hmacShaKeyFor(
+                "spafeu-test-secret-key-32bytes-long!".getBytes(StandardCharsets.UTF_8));
+        jwtService = new JWTServiceImpl(repository, jwtSecretKey);
+
         userDTO = new UsuarioDTO();
         userDTO.setId(1L);
         userDTO.setUsername("testuser");
