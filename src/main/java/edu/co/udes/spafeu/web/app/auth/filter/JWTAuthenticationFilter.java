@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -47,8 +46,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-	@Value("${cookie.refresh-token-path:/api/session}")
-	private String refreshTokenPath;
+	private static final String ERROR = "error";
 
 	private AuthenticationManager authenticationManager;
 	private JWTService jWTService;
@@ -89,7 +87,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 				 Map<String, String> body= new HashMap<>();
 				 
 					body.put(MESSAGE, "Empty");
-					body.put("error", "El nombre de usuario y la contraseña son obligatorios");
+					body.put(ERROR, "El nombre de usuario y la contraseña son obligatorios");
 					response.getWriter().write(new ObjectMapper().writeValueAsString(body));
 					response.setContentType(CONTENT_TYPE);
 					response.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -134,7 +132,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             String refreshToken = refreshTokenService.createRefreshTokenValue(usuarioDTO.getId());
 
             ResponseCookie refreshCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_NAME, refreshToken)
-                    .path(refreshTokenPath)
+                    .path("/api/session")
                     .httpOnly(true)
                     .secure(cookieSecure)
                     .sameSite(SAME_SITE_LAX)
@@ -147,7 +145,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             response.setContentType(CONTENT_TYPE);
             Map<String, String> errorBody = new HashMap<>();
             errorBody.put(MESSAGE, "Error generando sesión de refresco");
-            errorBody.put("error", e.getMessage());
+            errorBody.put(ERROR, e.getMessage());
             response.getWriter().write(new ObjectMapper().writeValueAsString(errorBody));
             return;
         }
@@ -175,7 +173,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 	        body.put(MESSAGE, "username/correo o password incorrectos");
 	        
 	    }
-		body.put("error", failed.getMessage());
+		body.put(ERROR, failed.getMessage());
 		
 		response.getWriter().write(new ObjectMapper().writeValueAsString(body));
 		response.setContentType(CONTENT_TYPE);

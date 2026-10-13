@@ -2,6 +2,7 @@ package edu.co.udes.spafeu.web.app.auth.service.impl;
 
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.ACCESS_TOKEN_EXPIRATION_DATE;
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.PREFIX_TOKEN;
+import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.AUTHORITIES;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class JWTServiceImpl implements JWTService {
 													   .toList();
 		
 		Claims claims = Jwts.claims()
-				.add("authorities", roles)
+				.add(AUTHORITIES, roles)
 				.add("username", username)
 				.add("id",userDTO.getId())
 				.build();
@@ -74,7 +75,7 @@ public class JWTServiceImpl implements JWTService {
 				.toList();
 
 		Claims claims = Jwts.claims()
-				.add("authorities", roles)
+				.add(AUTHORITIES, roles)
 				.add("username", userDTO.getUsername())
 				.add("id", userDTO.getId())
 				.build();
@@ -119,7 +120,7 @@ public class JWTServiceImpl implements JWTService {
 		
 		@SuppressWarnings("unchecked")
 		List<Map<String, String>> roles =
-	            (List<Map<String, String>>) getClaims(token).get("authorities");
+	            (List<Map<String, String>>) getClaims(token).get(AUTHORITIES);
 
 	    return roles.stream()
 	            .map(role -> new SimpleGrantedAuthority(role.get("authority")))

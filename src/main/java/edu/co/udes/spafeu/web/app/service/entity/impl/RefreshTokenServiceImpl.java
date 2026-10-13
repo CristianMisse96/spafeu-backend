@@ -9,9 +9,10 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,8 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.RefreshTokenResponseDTO;
+import edu.co.udes.spafeu.web.app.models.dto.RoleDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.entities.RefreshToken;
+import edu.co.udes.spafeu.web.app.models.entities.UserHealthProfile;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.TokenStatusEnum;
 import edu.co.udes.spafeu.web.app.repositories.RefreshTokenRepository;
@@ -61,7 +64,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UsuarioRepository usuarioRepository;
     private final JWTService jwtService;
-    private final ModelMapper modelMapper;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -155,7 +157,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         RefreshToken newRefreshToken = buildRefreshToken(usuario, newTokenHash);
         refreshTokenRepository.save(newRefreshToken);
 
-        UsuarioDTO usuarioDTO = modelMapper.map(usuario, UsuarioDTO.class);
+        UsuarioDTO usuarioDTO = mapToUsuarioDTO(usuario);
+				
         String accessToken = jwtService.createAccessToken(usuarioDTO);
 
         RefreshTokenResponseDTO response = new RefreshTokenResponseDTO();
@@ -166,6 +169,35 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         return new RefreshTokenRotationResult(response, newRawToken);
     }
+
+	private UsuarioDTO mapToUsuarioDTO(Usuario usuario) {
+		UsuarioDTO usuarioDTO = new UsuarioDTO();
+		usuarioDTO.setId(usuario.getId());
+		usuarioDTO.setUsername(usuario.getUsername());
+		usuarioDTO.setEmail(usuario.getEmail());
+		usuarioDTO.setEnabled(usuario.getEnabled());
+		usuarioDTO.setFoto(usuario.getFoto());
+		usuarioDTO.setEstadoKyc(usuario.getEstadoKyc());
+		usuarioDTO.setUsername(usuario.getUsername());
+
+		List<RoleDTO> roles = usuario.getRoles()
+				.stream()
+				.map(role -> new RoleDTO(role.getId(), role.getRol()))
+				.toList();
+
+		usuarioDTO.setRoles(roles);
+
+		UserHealthProfile uh = usuario.getUsuarioKyc();
+
+		if (Objects.nonNull(uh)) {
+			usuarioDTO.setNivelActividadFisica(uh.getNivelActividadFisica());
+			usuarioDTO.setWeightKg(uh.getWeightKg());
+			usuarioDTO.setHeightM(uh.getHeightM());
+			usuarioDTO.setBmi(uh.getBmi());
+			usuarioDTO.setNombreCompleto(uh.getFullName());
+		}
+		return usuarioDTO;
+	}
 
     private RefreshToken buildRefreshToken(Usuario usuario, String tokenHash) {
         LocalDateTime now = LocalDateTime.now();

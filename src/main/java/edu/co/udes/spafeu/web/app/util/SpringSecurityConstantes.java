@@ -26,5 +26,6 @@ public class SpringSecurityConstantes {
 	public static final String ROLE_USER = "USER";
 	public static final String ROLE_VALIDADOR = "VALIDADOR";
 	public static final String SAME_SITE_LAX = "Lax";
+	public static final String AUTHORITIES = "authorities";
 	
 }
