@@ -17,13 +17,13 @@ import org.junit.jupiter.api.Test;
 class AuthServiceTest {
 
     @Test
-    @DisplayName("La interfaz AuthService debe declarar exactamente 3 métodos")
-    void interfazDebeDeclararTresMetodos() throws NoSuchMethodException, SecurityException {
+    @DisplayName("La interfaz AuthService debe declarar exactamente 5 métodos")
+    void interfazDebeDeclararCincoMetodos() throws NoSuchMethodException, SecurityException {
         // Arrange & Act
         Method[] methods = AuthService.class.getDeclaredMethods();
 
         // Assert
-        assertEquals(3, methods.length, "AuthService debe declarar exactamente 3 métodos");
+        assertEquals(5, methods.length, "AuthService debe declarar exactamente 5 métodos");
     }
 
     @Test
@@ -47,6 +47,28 @@ class AuthServiceTest {
         assertEquals(2, resetPasswordMethod.getParameterCount(), "resetPassword debe recibir 2 parámetros");
         assertEquals(String.class, resetPasswordMethod.getParameterTypes()[0], "Primer parámetro debe ser String");
         assertEquals(String.class, resetPasswordMethod.getParameterTypes()[1], "Segundo parámetro debe ser String");
+    }
+
+    @Test
+    @DisplayName("AuthService debe declarar activateAccount(String)")
+    void debeDeclararActivateAccount() throws NoSuchMethodException {
+        // Arrange & Act
+        Method activateAccountMethod = AuthService.class.getMethod("activateAccount", String.class);
+
+        // Assert
+        assertEquals(1, activateAccountMethod.getParameterCount(), "activateAccount debe recibir 1 parámetro");
+        assertEquals(String.class, activateAccountMethod.getParameterTypes()[0], "El parámetro debe ser String");
+    }
+
+    @Test
+    @DisplayName("AuthService debe declarar resendActivationEmail(String)")
+    void debeDeclararResendActivationEmail() throws NoSuchMethodException {
+        // Arrange & Act
+        Method resendActivationEmailMethod = AuthService.class.getMethod("resendActivationEmail", String.class);
+
+        // Assert
+        assertEquals(1, resendActivationEmailMethod.getParameterCount(), "resendActivationEmail debe recibir 1 parámetro");
+        assertEquals(String.class, resendActivationEmailMethod.getParameterTypes()[0], "El parámetro debe ser String");
     }
 
     @Test

@@ -38,7 +38,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
@@ -85,7 +84,6 @@ class JWTAuthenticationFilterTest {
     @BeforeEach
     void setUp() throws Exception {
         filter = new JWTAuthenticationFilter(authenticationManager, jWTService, refreshTokenService, false);
-        ReflectionTestUtils.setField(filter, "refreshTokenPath", "/api/session");
         stringWriter = new StringWriter();
         printWriter = new PrintWriter(stringWriter);
 

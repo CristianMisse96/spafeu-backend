@@ -25,7 +25,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
@@ -58,9 +57,6 @@ class RefreshTokenServiceImplTest {
 
     @Mock
     private JWTService jwtService;
-
-    @Mock
-    private ModelMapper modelMapper;
 
     @InjectMocks
     private RefreshTokenServiceImpl refreshTokenService;
@@ -166,8 +162,7 @@ class RefreshTokenServiceImplTest {
                 }
                 return saved;
             });
-            when(modelMapper.map(usuario, UsuarioDTO.class)).thenReturn(usuarioDTO);
-            when(jwtService.createAccessToken(usuarioDTO)).thenReturn(ACCESS_TOKEN);
+            when(jwtService.createAccessToken(any(UsuarioDTO.class))).thenReturn(ACCESS_TOKEN);
 
             RefreshTokenRotationResult result = refreshTokenService.rotateRefreshToken(RAW_TOKEN);
 
@@ -176,13 +171,16 @@ class RefreshTokenServiceImplTest {
             assertThat(response.getAccessToken()).isEqualTo(ACCESS_TOKEN);
             assertThat(response.getTokenType()).isEqualTo("Bearer");
             assertThat(response.getExpiresIn()).isEqualTo(15L * 60L);
-            assertThat(response.getUsuario()).isEqualTo(usuarioDTO);
+            assertThat(response.getUsuario()).isNotNull();
+            assertThat(response.getUsuario().getId()).isEqualTo(USER_ID);
+            assertThat(response.getUsuario().getUsername()).isEqualTo("testuser");
+            assertThat(response.getUsuario().getEmail()).isEqualTo("test@udes.edu.co");
             assertThat(result.rawRefreshToken()).isNotBlank();
 
             assertThat(activeToken.getStatus()).isEqualTo(TokenStatusEnum.USED);
             assertThat(activeToken.getUsedAt()).isNotNull();
             verify(refreshTokenRepository, times(2)).save(any(RefreshToken.class));
-            verify(jwtService).createAccessToken(usuarioDTO);
+            verify(jwtService).createAccessToken(any(UsuarioDTO.class));
         }
 
         @Test

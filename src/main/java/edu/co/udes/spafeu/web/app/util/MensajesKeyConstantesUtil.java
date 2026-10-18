@@ -22,6 +22,12 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_EXPIRADO = "error.usuario.reset.password.token.expirado";
 	public static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_NO_VALIDO = "error.usuario.reset.password.token.no.valido";
 	public static final String ERROR_USUARIO_REGISTRAR_EXISTE = "error.usuario.registrar.existe";
+	public static final String SUCCESS_ACTIVACION_CUENTA = "auth.activacion.cuenta.exitoso";
+	public static final String ERROR_USUARIO_ACTIVACION_TOKEN_NO_VALIDO = "error.usuario.activacion.token.no.valido";
+	public static final String ERROR_USUARIO_ACTIVACION_TOKEN_EXPIRADO = "error.usuario.activacion.token.expirado";
+	public static final String SUCCESS_REENVIO_ACTIVACION_CUENTA = "auth.activacion.correo.reenviado";
+	public static final String ERROR_USUARIO_ACTIVACION_YA_ACTIVADO = "error.usuario.activacion.ya.activado";
+	public static final String ERROR_USUARIO_ACTIVACION_NO_REGISTRADO = "error.usuario.activacion.no.registrado";
 
 	// ============================================================
 	// Keys del proceso de Perfil de Salud

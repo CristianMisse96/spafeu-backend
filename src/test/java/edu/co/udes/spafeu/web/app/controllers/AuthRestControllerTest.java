@@ -242,4 +242,114 @@ class AuthRestControllerTest {
             verify(authServiceTask, never()).resetPassword(anyString(), anyString());
         }
     }
+
+    @Nested
+    @DisplayName("POST /api/auth/activate-account")
+    class ActivateAccount {
+
+        @Test
+        @DisplayName("Debe activar cuenta con token válido")
+        void activateAccountExitoso() {
+            // Arrange
+            RespuestaServicioDTO<String> respuesta = new RespuestaServicioDTO<>();
+            respuesta.setOk(true);
+            respuesta.setNegocio("auth.activacion.cuenta.exitoso");
+            respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
+                    messages.getKey("SUCCESS"), "Cuenta activada"));
+
+            when(authServiceTask.activateAccount("token-activacion"))
+                    .thenReturn(new ResponseEntity<>(respuesta, HttpStatus.OK));
+
+            // Act
+            ResponseEntity<RespuestaServicioDTO<String>> result = authRestController.activateAccount("token-activacion");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertTrue(result.getBody().isOk());
+            assertEquals("auth.activacion.cuenta.exitoso", result.getBody().getNegocio());
+            verify(authServiceTask).activateAccount("token-activacion");
+        }
+
+        @Test
+        @DisplayName("Debe retornar BAD_REQUEST cuando token está vacío")
+        void activateAccountTokenVacio() {
+            // Act
+            ResponseEntity<RespuestaServicioDTO<String>> result = authRestController.activateAccount("");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+            assertFalse(result.getBody().isOk());
+            verify(authServiceTask, never()).activateAccount(anyString());
+        }
+
+        @Test
+        @DisplayName("Debe retornar BAD_REQUEST cuando token es nulo")
+        void activateAccountTokenNulo() {
+            // Act
+            ResponseEntity<RespuestaServicioDTO<String>> result = authRestController.activateAccount(null);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+            assertFalse(result.getBody().isOk());
+            verify(authServiceTask, never()).activateAccount(anyString());
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /api/auth/resend-activation-email")
+    class ResendActivationEmail {
+
+        @Test
+        @DisplayName("Debe reenviar correo de activación con email válido")
+        void resendActivationEmailExitoso() {
+            // Arrange
+            RespuestaServicioDTO<String> respuesta = new RespuestaServicioDTO<>();
+            respuesta.setOk(true);
+            respuesta.setNegocio("auth.activacion.correo.reenviado");
+            respuesta.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS,
+                    messages.getKey("SUCCESS"), "Correo de activación reenviado"));
+
+            when(authServiceTask.resendActivationEmail("test@example.com"))
+                    .thenReturn(new ResponseEntity<>(respuesta, HttpStatus.OK));
+
+            // Act
+            ResponseEntity<RespuestaServicioDTO<String>> result = authRestController.resendActivationEmail("test@example.com");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertTrue(result.getBody().isOk());
+            assertEquals("auth.activacion.correo.reenviado", result.getBody().getNegocio());
+            verify(authServiceTask).resendActivationEmail("test@example.com");
+        }
+
+        @Test
+        @DisplayName("Debe retornar BAD_REQUEST cuando email está vacío")
+        void resendActivationEmailEmailVacio() {
+            // Act
+            ResponseEntity<RespuestaServicioDTO<String>> result = authRestController.resendActivationEmail("");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+            assertFalse(result.getBody().isOk());
+            verify(authServiceTask, never()).resendActivationEmail(anyString());
+        }
+
+        @Test
+        @DisplayName("Debe retornar BAD_REQUEST cuando email es nulo")
+        void resendActivationEmailEmailNulo() {
+            // Act
+            ResponseEntity<RespuestaServicioDTO<String>> result = authRestController.resendActivationEmail(null);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+            assertFalse(result.getBody().isOk());
+            verify(authServiceTask, never()).resendActivationEmail(anyString());
+        }
+    }
 }

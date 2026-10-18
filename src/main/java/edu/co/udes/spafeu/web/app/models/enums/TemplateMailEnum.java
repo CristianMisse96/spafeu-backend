@@ -16,7 +16,8 @@ public enum TemplateMailEnum {
 	/*plantilladeclaraciontransmisioncreditoswift*/
 	PLANTILLA_FORGOT_PASSWORD_USUARIO("plantillaforgotpasswordusuario.html"), 
 	PLANTILLA_KYC_APPROBADO("plantillakycaprobado.html"), 
-	PLANTILLA_KYC_RECHAZADO("plantillakycrechazado.html");
+	PLANTILLA_KYC_RECHAZADO("plantillakycrechazado.html"),
+	PLANTILLA_ACTIVACION_CUENTA("plantillaactivacioncuenta.html");
 	
 	private String name;
 

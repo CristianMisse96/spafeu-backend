@@ -139,4 +139,57 @@ class AuthServiceTaskImplTest {
 			verify(authService).resetPassword(token, newPassword);
 		}
 	}
+
+	@Nested
+	@DisplayName("activateAccount()")
+	class ActivateAccount {
+
+		@Test
+		@DisplayName("Debe activar cuenta exitosamente y retornar 200 OK")
+		void debeActivarCuentaExitosamenteYRetornar200OK() {
+			String token = "token-activacion";
+			doNothing().when(authService).activateAccount(token);
+
+			ResponseEntity<RespuestaServicioDTO<String>> response = authServiceTask.activateAccount(token);
+
+			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+			assertThat(response.getBody()).isNotNull();
+			assertThat(response.getBody().isOk()).isTrue();
+			assertThat(response.getBody().getNegocio()).isEqualTo("auth.activacion.cuenta.exitoso");
+
+			MensajeDTO mensaje = response.getBody().getMensajeDTO();
+			assertThat(mensaje).isNotNull();
+			assertThat(mensaje.getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
+			assertThat(mensaje.getSummary()).isEqualTo("mensaje.mocked");
+			assertThat(mensaje.getDetail()).isEqualTo("mensaje.mocked");
+
+			verify(authService).activateAccount(token);
+		}
+	}
+
+	@Nested
+	@DisplayName("resendActivationEmail()")
+	class ResendActivationEmail {
+
+		@Test
+		@DisplayName("Debe reenviar correo de activación exitosamente y retornar 200 OK")
+		void debeReenviarCorreoActivacionExitosamenteYRetornar200OK() {
+			doNothing().when(authService).resendActivationEmail(EMAIL);
+
+			ResponseEntity<RespuestaServicioDTO<String>> response = authServiceTask.resendActivationEmail(EMAIL);
+
+			assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+			assertThat(response.getBody()).isNotNull();
+			assertThat(response.getBody().isOk()).isTrue();
+			assertThat(response.getBody().getNegocio()).isEqualTo("auth.activacion.correo.reenviado");
+
+			MensajeDTO mensaje = response.getBody().getMensajeDTO();
+			assertThat(mensaje).isNotNull();
+			assertThat(mensaje.getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
+			assertThat(mensaje.getSummary()).isEqualTo("mensaje.mocked");
+			assertThat(mensaje.getDetail()).isEqualTo("mensaje.mocked");
+
+			verify(authService).resendActivationEmail(EMAIL);
+		}
+	}
 }

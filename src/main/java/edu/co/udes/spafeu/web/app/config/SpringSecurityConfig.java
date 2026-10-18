@@ -61,6 +61,8 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/activate-account").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/resend-activation-email").permitAll()
                         // Módulo Refresh Token - endpoints públicos para rotar y revocar sesiones
                         .requestMatchers(HttpMethod.POST, "/api/session/refresh").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/session/logout").permitAll()
