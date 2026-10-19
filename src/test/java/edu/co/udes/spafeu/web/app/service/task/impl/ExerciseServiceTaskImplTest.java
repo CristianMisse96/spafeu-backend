@@ -1,30 +1,26 @@
 package edu.co.udes.spafeu.web.app.service.task.impl;
 
-import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_SUCCESS;
-import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_DETALLE;
-import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_EXERCISE_COMPLETADO;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.KEY_SUCCESS;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_DETALLE;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.SUCCESS_EXERCISE_COMPLETADO;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.extern.log4j.Log4j2;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseCompletionResultDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
@@ -187,19 +183,25 @@ class ExerciseServiceTaskImplTest {
         @Test
         @DisplayName("Debe retornar 200 OK con RespuestaServicioDTO indicando éxito")
         void debeRetornar200ConRespuestaExitosa() throws Exception {
-            doNothing().when(exerciseService).completeExerciseSession(1L, 1L);
+            ExerciseCompletionResultDTO resultDTO = new ExerciseCompletionResultDTO();
+            resultDTO.setSubioNivel(Boolean.FALSE);
+            resultDTO.setNivelAnterior(NivelActividadFisicaEnum.NIVEL_3);
+            resultDTO.setMensaje(SUCCESS_EXERCISE_COMPLETADO);
+
+            when(exerciseService.completeExerciseSession(1L, 1L)).thenReturn(resultDTO);
             when(messages.getKey(KEY_SUCCESS)).thenReturn("Éxito");
             when(messages.getKey(SUCCESS_EXERCISE_COMPLETADO)).thenReturn("Ejercicio completado");
 
-            ResponseEntity<RespuestaServicioDTO<Void>> response = exerciseServiceTask.completeExerciseSession(1L, 1L);
+            ResponseEntity<RespuestaServicioDTO<ExerciseCompletionResultDTO>> response = exerciseServiceTask.completeExerciseSession(1L, 1L);
 
             assertThat(response).isNotNull();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-            RespuestaServicioDTO<Void> body = response.getBody();
+            RespuestaServicioDTO<ExerciseCompletionResultDTO> body = response.getBody();
             assertThat(body).isNotNull();
             assertThat(body.isOk()).isTrue();
-            assertThat(body.getNegocio()).isNull();
+            assertThat(body.getNegocio()).isNotNull();
+            assertThat(body.getNegocio().getSubioNivel()).isFalse();
             assertThat(body.getMensajeDTO()).isNotNull();
             assertThat(body.getMensajeDTO().getSeverity()).isEqualTo(SeverityEnum.SUCCESS);
             assertThat(body.getMensajeDTO().getSummary()).isEqualTo("Éxito");

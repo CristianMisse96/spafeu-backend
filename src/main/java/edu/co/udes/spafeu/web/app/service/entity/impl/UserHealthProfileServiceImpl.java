@@ -29,6 +29,7 @@ import edu.co.udes.spafeu.web.app.repositories.UserAnswerRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserHealthProfileRepository;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.service.entity.UserHealthProfileService;
+import edu.co.udes.spafeu.web.app.service.entity.UserLevelHistoryService;
 import edu.co.udes.spafeu.web.app.util.ClasificacionActividadFisicaUtil;
 import edu.co.udes.spafeu.web.app.util.ClasificacionConstantesUtil;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class UserHealthProfileServiceImpl implements UserHealthProfileService {
     private final QuestionRepository questionRepository;
     private final OptionRepository optionRepository;
     private final CampusProgramRepository campusProgramRepository;
+    private final UserLevelHistoryService userLevelHistoryService;
 
    
     @Override
@@ -71,6 +73,8 @@ public class UserHealthProfileServiceImpl implements UserHealthProfileService {
         profileEntity.setNivelActividadFisica(nivelActividad);
 
         UserHealthProfile savedProfile = userHealthProfileRepository.save(profileEntity);
+
+        userLevelHistoryService.registrarNivelInicial(userId, savedProfile.getNivelActividadFisica());
 
         if (dto.getAnswers() != null && !dto.getAnswers().isEmpty()) {
             List<UserAnswer> answersToSave = new ArrayList<>();

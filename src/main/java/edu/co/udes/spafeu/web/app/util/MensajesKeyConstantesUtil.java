@@ -29,6 +29,8 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_USUARIO_ACTIVACION_YA_ACTIVADO = "error.usuario.activacion.ya.activado";
 	public static final String ERROR_USUARIO_ACTIVACION_NO_REGISTRADO = "error.usuario.activacion.no.registrado";
 
+	public static final String ERROR_USUARIO_NO_EXISTE = "error.usuario.kyc.user.no.existe";
+
 	// ============================================================
 	// Keys del proceso de Perfil de Salud
 	// Registro de perfil de salud y respuestas al cuestionario
@@ -36,6 +38,7 @@ public class MensajesKeyConstantesUtil {
 	public static final String PERFIL_SALUD_REGISTRO_EXITOSO = "perfil.salud.registro.exitoso";
 	public static final String ERROR_PERFIL_SALUD_YA_EXISTE = "error.perfil.salud.ya.existe";
 	public static final String ERROR_CAMPUS_PROGRAM_NO_ENCONTRADO = "error.campus.program.no.encontrado";
+	public static final String ERROR_USER_HEALTH_PROFILE_NO_ENCONTRADO = "error.user.health.profile.no.encontrado";
 
 	// ============================================================
 	// Keys del módulo de Ejercicios (Exercise)
@@ -45,6 +48,8 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_EXERCISE_COMPLETO = "error.exercise.completo";
 	public static final String SUCCESS_EXERCISE_COMPLETADO = "success.exercise.completado";
 	public static final String ERROR_EXERCISE_SESSION_NO_ENCONTRADA = "error.exercise.session.no.encontrada";
+	public static final String SUCCESS_NIVEL_SUBIDO = "success.nivel.subido";
+	public static final String SUCCESS_ULTIMO_NIVEL_COMPLETADO = "success.ultimo.nivel.completado";
 
 	// ============================================================
 	// Keys del módulo de Refresh Token

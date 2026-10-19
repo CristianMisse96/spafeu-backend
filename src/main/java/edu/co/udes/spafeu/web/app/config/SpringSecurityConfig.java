@@ -2,9 +2,7 @@ package edu.co.udes.spafeu.web.app.config;
 
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.HEADER_AUTHORIZATION;
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.ROLE_USER;
-
 import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +15,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
 import edu.co.udes.spafeu.web.app.auth.filter.JWTAuthenticationFilter;
 import edu.co.udes.spafeu.web.app.auth.filter.JWTValidationFilter;
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;

@@ -1,9 +1,8 @@
 package edu.co.udes.spafeu.web.app.service.task;
 
 import java.util.Set;
-
 import org.springframework.http.ResponseEntity;
-
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseCompletionResultDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
@@ -38,11 +37,12 @@ public interface ExerciseServiceTask {
 
     /**
      * Completa la sesion de ejercicio activa de un usuario calculando
-     * los minutos realizados y construye la respuesta de servicio con mensaje de exito.
+     * los minutos realizados, evalua la transicion de nivel y construye
+     * la respuesta de servicio con mensaje de exito.
      *
      * @param exerciseId el identificador del ejercicio
      * @param userId el identificador del usuario
-     * @return ResponseEntity con {@link RespuestaServicioDTO} indicando la finalizacion del ejercicio
+     * @return ResponseEntity con {@link RespuestaServicioDTO} indicando el resultado de la operacion
      */
-    ResponseEntity<RespuestaServicioDTO<Void>> completeExerciseSession(Long exerciseId, Long userId);
+    ResponseEntity<RespuestaServicioDTO<ExerciseCompletionResultDTO>> completeExerciseSession(Long exerciseId, Long userId);
 }

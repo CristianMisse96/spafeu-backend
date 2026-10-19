@@ -5,28 +5,25 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.extern.log4j.Log4j2;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mock;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseCompletionResultDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.dto.MensajeDTO;
 import edu.co.udes.spafeu.web.app.models.dto.RespuestaServicioDTO;
@@ -207,28 +204,37 @@ class ExerciseRestControllerTest {
     @DisplayName("PATCH /api/exercises/{exerciseId}/complete")
     class CompleteExerciseSession {
 
-        private RespuestaServicioDTO<Void> respuestaVoid;
-        private ResponseEntity<RespuestaServicioDTO<Void>> serviceTaskResponseVoid;
+        private ExerciseCompletionResultDTO resultDTO;
+        private RespuestaServicioDTO<ExerciseCompletionResultDTO> respuestaResult;
+        private ResponseEntity<RespuestaServicioDTO<ExerciseCompletionResultDTO>> serviceTaskResponseResult;
 
         @BeforeEach
         void setUpComplete() {
-            respuestaVoid = new RespuestaServicioDTO<>();
-            respuestaVoid.setOk(true);
-            respuestaVoid.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS, "Éxito", "Ejercicio completado"));
-            serviceTaskResponseVoid = new ResponseEntity<>(respuestaVoid, HttpStatus.OK);
+            resultDTO = new ExerciseCompletionResultDTO();
+            resultDTO.setSubioNivel(Boolean.TRUE);
+            resultDTO.setNivelAnterior(NivelActividadFisicaEnum.NIVEL_2);
+            resultDTO.setNivelNuevo(NivelActividadFisicaEnum.NIVEL_3);
+
+            respuestaResult = new RespuestaServicioDTO<>();
+            respuestaResult.setOk(true);
+            respuestaResult.setNegocio(resultDTO);
+            respuestaResult.setMensajeDTO(new MensajeDTO(SeverityEnum.SUCCESS, "Éxito", "Ejercicio completado"));
+            serviceTaskResponseResult = new ResponseEntity<>(respuestaResult, HttpStatus.OK);
         }
 
         @Test
         @DisplayName("Debe retornar 200 OK al completar sesión de ejercicio")
         void debeRetornar200AlCompletarSesion() {
-            when(exerciseServiceTask.completeExerciseSession(1L, 1L)).thenReturn(serviceTaskResponseVoid);
+            when(exerciseServiceTask.completeExerciseSession(1L, 1L)).thenReturn(serviceTaskResponseResult);
 
-            ResponseEntity<RespuestaServicioDTO<Void>> response = exerciseRestController.completeExerciseSession(1L);
+            ResponseEntity<RespuestaServicioDTO<ExerciseCompletionResultDTO>> response = exerciseRestController.completeExerciseSession(1L);
 
             assertThat(response).isNotNull();
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
             assertThat(response.getBody().isOk()).isTrue();
+            assertThat(response.getBody().getNegocio()).isNotNull();
+            assertThat(response.getBody().getNegocio().getSubioNivel()).isTrue();
 
             verify(exerciseServiceTask, times(1)).completeExerciseSession(1L, 1L);
             log.info("Test PATCH /complete con éxito: retorna 200 OK");
@@ -237,7 +243,7 @@ class ExerciseRestControllerTest {
         @Test
         @DisplayName("Debe obtener userId del SecurityContextHolder y pasarlo al ServiceTask")
         void debeObtenerUserIdDelSecurityContextParaComplete() {
-            when(exerciseServiceTask.completeExerciseSession(1L, 1L)).thenReturn(serviceTaskResponseVoid);
+            when(exerciseServiceTask.completeExerciseSession(1L, 1L)).thenReturn(serviceTaskResponseResult);
 
             exerciseRestController.completeExerciseSession(1L);
 
