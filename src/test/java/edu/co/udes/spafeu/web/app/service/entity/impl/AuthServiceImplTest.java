@@ -8,16 +8,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_ACTIVACION_NO_REGISTRADO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_ACTIVACION_TOKEN_EXPIRADO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_ACTIVACION_TOKEN_NO_VALIDO;
+import static edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil.ERROR_USUARIO_ACTIVACION_YA_ACTIVADO;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+
+import lombok.extern.log4j.Log4j2;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,17 +40,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
+import edu.co.udes.spafeu.web.app.models.entities.AccountActivationToken;
 import edu.co.udes.spafeu.web.app.models.entities.PasswordResetToken;
 import edu.co.udes.spafeu.web.app.models.entities.Role;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.RolEnum;
 import edu.co.udes.spafeu.web.app.models.enums.TemplateMailEnum;
 import edu.co.udes.spafeu.web.app.models.enums.TokenStatusEnum;
+import edu.co.udes.spafeu.web.app.repositories.AccountActivationTokenRepository;
 import edu.co.udes.spafeu.web.app.repositories.PasswordResetTokenRepository;
 import edu.co.udes.spafeu.web.app.repositories.RoleRepository;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.service.entity.CorreoService;
-import lombok.extern.log4j.Log4j2;
 
 /**
  * <p>Título: Proyecto SPAFEU</p>
@@ -72,6 +80,9 @@ class AuthServiceImplTest {
 
     @Mock
     private RoleRepository roleRepository;
+
+    @Mock
+    private AccountActivationTokenRepository accountActivationTokenRepository;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -305,7 +316,7 @@ class AuthServiceImplTest {
         }
 
         @Test
-        @DisplayName("Debe registrar usuario correctamente con rol ROLE_USER")
+        @DisplayName("Debe registrar usuario correctamente con rol ROLE_USER y enviar correo de activación")
         void debeRegistrarUsuarioCorrectamente() {
             // Arrange
             when(userRepository.existsByEmailOrUsername(usuarioDTO.getEmail(), usuarioDTO.getUsername()))
@@ -315,6 +326,11 @@ class AuthServiceImplTest {
             when(roleRepository.findByRol(RolEnum.ROLE_USER)).thenReturn(Optional.of(rolUser));
             when(userRepository.save(any(Usuario.class))).thenReturn(usuarioEntity);
             when(modelMapper.map(usuarioEntity, UsuarioDTO.class)).thenReturn(usuarioDTO);
+            doNothing().when(accountActivationTokenRepository).invalidateTokensByUser(anyLong(), any());
+            when(accountActivationTokenRepository.save(any(AccountActivationToken.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            doNothing().when(correoService).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class),
+                    nullable(String.class));
 
             // Act
             UsuarioDTO resultado = authService.registrarUsuario(usuarioDTO);
@@ -323,13 +339,38 @@ class AuthServiceImplTest {
             assertThat(resultado).isNotNull();
             assertThat(resultado.getEmail()).isEqualTo(usuarioDTO.getEmail());
             assertThat(resultado.getUsername()).isEqualTo(usuarioDTO.getUsername());
+
+            ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
+            verify(userRepository).save(usuarioCaptor.capture());
+            Usuario usuarioGuardado = usuarioCaptor.getValue();
+            assertThat(usuarioGuardado.getEnabled()).isFalse();
+
+            verify(accountActivationTokenRepository).invalidateTokensByUser(usuarioGuardado.getId(),
+                    TokenStatusEnum.EXPIRED);
+
+            ArgumentCaptor<AccountActivationToken> activationTokenCaptor = ArgumentCaptor
+                    .forClass(AccountActivationToken.class);
+            verify(accountActivationTokenRepository).save(activationTokenCaptor.capture());
+            AccountActivationToken activationTokenGuardado = activationTokenCaptor.getValue();
+            assertThat(activationTokenGuardado.getUser()).isEqualTo(usuarioGuardado);
+            assertThat(activationTokenGuardado.getStatus()).isEqualTo(TokenStatusEnum.ACTIVE);
+
+            LocalDateTime now = LocalDateTime.now();
+            long hoursBetween = java.time.Duration.between(now, activationTokenGuardado.getExpiration()).toHours();
+            assertTrue(hoursBetween >= 23 && hoursBetween <= 24,
+                    "El token de activación debería expirar en 24 horas, pero expira en " + hoursBetween + " horas");
+
+            ArgumentCaptor<Map<String, Object>> mailCaptor = ArgumentCaptor.forClass(Map.class);
+            verify(correoService).generarCorreo(mailCaptor.capture(), anyString(),
+                    eq(TemplateMailEnum.PLANTILLA_ACTIVACION_CUENTA), nullable(String.class));
+            assertThat(mailCaptor.getValue()).containsKeys("token", "fecha");
+
             verify(userRepository).existsByEmailOrUsername(usuarioDTO.getEmail(), usuarioDTO.getUsername());
             verify(modelMapper).map(usuarioDTO, Usuario.class);
             verify(passwordEncoder).encode(usuarioDTO.getPassword());
             verify(roleRepository).findByRol(RolEnum.ROLE_USER);
-            verify(userRepository).save(any(Usuario.class));
             verify(modelMapper).map(usuarioEntity, UsuarioDTO.class);
-            log.info("Test registrarUsuario exitoso: usuario creado con rol ROLE_USER");
+            log.info("Test registrarUsuario exitoso: usuario creado, inactivo, token de activación generado y correo enviado");
         }
 
         @Test
@@ -380,6 +421,166 @@ class AuthServiceImplTest {
             assertThat(rolAsignado.getRol()).isEqualTo(RolEnum.ROLE_USER);
             verify(roleRepository).save(any(Role.class));
             log.info("Test registrarUsuario crea rol si no existe: correcto");
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests de activateAccount()")
+    class ActivateAccountTests {
+
+        private AccountActivationToken activationToken;
+        private static final String TOKEN_ACTIVACION = "token-activacion-123";
+
+        @BeforeEach
+        void setUpActivationToken() {
+            activationToken = new AccountActivationToken();
+            activationToken.setId(1L);
+            activationToken.setToken(TOKEN_ACTIVACION);
+            activationToken.setUser(usuario);
+            activationToken.setExpiration(LocalDateTime.now().plusHours(24));
+            activationToken.setStatus(TokenStatusEnum.ACTIVE);
+        }
+
+        @Test
+        @DisplayName("Debe activar cuenta cuando el token es válido y no está expirado")
+        void debeActivarCuentaCuandoTokenValidoYNoExpirado() {
+            // Arrange
+            usuario.setEnabled(Boolean.FALSE);
+            when(accountActivationTokenRepository.findByTokenAndStatus(TOKEN_ACTIVACION, TokenStatusEnum.ACTIVE))
+                    .thenReturn(Optional.of(activationToken));
+            when(userRepository.save(any(Usuario.class))).thenReturn(usuario);
+            when(accountActivationTokenRepository.save(any(AccountActivationToken.class))).thenReturn(activationToken);
+
+            // Act
+            authService.activateAccount(TOKEN_ACTIVACION);
+
+            // Assert
+            assertThat(usuario.getEnabled()).isTrue();
+            assertThat(activationToken.getStatus()).isEqualTo(TokenStatusEnum.USED);
+            verify(accountActivationTokenRepository).findByTokenAndStatus(TOKEN_ACTIVACION, TokenStatusEnum.ACTIVE);
+            verify(userRepository).save(usuario);
+            verify(accountActivationTokenRepository).save(activationToken);
+            log.info("Test activateAccount exitoso: cuenta activada y token marcado como USED");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando el token no es válido")
+        void debeLanzarExcepcionCuandoTokenNoValido() {
+            // Arrange
+            when(accountActivationTokenRepository.findByTokenAndStatus(TOKEN_ACTIVACION, TokenStatusEnum.ACTIVE))
+                    .thenReturn(Optional.empty());
+
+            // Act & Assert
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> authService.activateAccount(TOKEN_ACTIVACION));
+
+            assertThat(ex.getMensaje()).isEqualTo(ERROR_USUARIO_ACTIVACION_TOKEN_NO_VALIDO);
+            verify(userRepository, never()).save(any());
+            verify(accountActivationTokenRepository, never()).save(any());
+            log.info("Test activateAccount token no válido: excepción lanzada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando el token está expirado")
+        void debeLanzarExcepcionCuandoTokenExpirado() {
+            // Arrange
+            activationToken.setExpiration(LocalDateTime.now().minusMinutes(1));
+            when(accountActivationTokenRepository.findByTokenAndStatus(TOKEN_ACTIVACION, TokenStatusEnum.ACTIVE))
+                    .thenReturn(Optional.of(activationToken));
+
+            // Act & Assert
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> authService.activateAccount(TOKEN_ACTIVACION));
+
+            assertThat(ex.getMensaje()).isEqualTo(ERROR_USUARIO_ACTIVACION_TOKEN_EXPIRADO);
+            assertThat(activationToken.getStatus()).isEqualTo(TokenStatusEnum.EXPIRED);
+            verify(userRepository, never()).save(any());
+            verify(accountActivationTokenRepository, never()).save(any());
+            log.info("Test activateAccount token expirado: excepción lanzada y token marcado como EXPIRED");
+        }
+    }
+
+    @Nested
+    @DisplayName("Tests de resendActivationEmail()")
+    class ResendActivationEmailTests {
+
+        private static final String EMAIL_REENVIO = "nuevo@test.com";
+
+        @Test
+        @DisplayName("Debe reenviar correo de activación cuando el usuario existe y no está activo")
+        void debeReenviarCorreoActivacionCuandoUsuarioExisteYNoActivo() throws Exception {
+            // Arrange
+            usuario.setEnabled(Boolean.FALSE);
+            when(userRepository.findByUsernameOrCorreo(EMAIL_REENVIO)).thenReturn(Optional.of(usuario));
+            doNothing().when(accountActivationTokenRepository).invalidateTokensByUser(anyLong(), any());
+            when(accountActivationTokenRepository.save(any(AccountActivationToken.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            doNothing().when(correoService).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class),
+                    nullable(String.class));
+
+            // Act
+            authService.resendActivationEmail(EMAIL_REENVIO);
+
+            // Assert
+            verify(userRepository).findByUsernameOrCorreo(EMAIL_REENVIO);
+            verify(accountActivationTokenRepository).invalidateTokensByUser(usuario.getId(), TokenStatusEnum.EXPIRED);
+
+            ArgumentCaptor<AccountActivationToken> tokenCaptor = ArgumentCaptor.forClass(AccountActivationToken.class);
+            verify(accountActivationTokenRepository).save(tokenCaptor.capture());
+            AccountActivationToken tokenGuardado = tokenCaptor.getValue();
+            assertThat(tokenGuardado.getUser()).isEqualTo(usuario);
+            assertThat(tokenGuardado.getStatus()).isEqualTo(TokenStatusEnum.ACTIVE);
+
+            LocalDateTime now = LocalDateTime.now();
+            long hoursBetween = java.time.Duration.between(now, tokenGuardado.getExpiration()).toHours();
+            assertTrue(hoursBetween >= 23 && hoursBetween <= 24,
+                    "El token de activación debería expirar en 24 horas, pero expira en " + hoursBetween + " horas");
+
+            ArgumentCaptor<Map<String, Object>> mailCaptor = ArgumentCaptor.forClass(Map.class);
+            ArgumentCaptor<TemplateMailEnum> templateCaptor = ArgumentCaptor.forClass(TemplateMailEnum.class);
+            verify(correoService).generarCorreo(mailCaptor.capture(), anyString(), templateCaptor.capture(),
+                    nullable(String.class));
+            assertThat(mailCaptor.getValue()).containsKeys("token", "fecha");
+            assertThat(templateCaptor.getValue()).isEqualTo(TemplateMailEnum.PLANTILLA_ACTIVACION_CUENTA);
+
+            log.info("Test resendActivationEmail exitoso: token regenerado y correo reenviado");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando el usuario no existe")
+        void debeLanzarExcepcionCuandoUsuarioNoExiste() {
+            // Arrange
+            when(userRepository.findByUsernameOrCorreo(EMAIL_REENVIO)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> authService.resendActivationEmail(EMAIL_REENVIO));
+
+            assertThat(ex.getMensaje()).isEqualTo(ERROR_USUARIO_ACTIVACION_NO_REGISTRADO);
+            verify(accountActivationTokenRepository, never()).invalidateTokensByUser(anyLong(), any());
+            verify(accountActivationTokenRepository, never()).save(any());
+            verify(correoService, never()).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class),
+                    nullable(String.class));
+            log.info("Test resendActivationEmail usuario no existe: excepción lanzada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar SpafeuException cuando el usuario ya está activo")
+        void debeLanzarExcepcionCuandoUsuarioYaActivo() {
+            // Arrange
+            usuario.setEnabled(Boolean.TRUE);
+            when(userRepository.findByUsernameOrCorreo(EMAIL_REENVIO)).thenReturn(Optional.of(usuario));
+
+            // Act & Assert
+            SpafeuException ex = assertThrows(SpafeuException.class,
+                    () -> authService.resendActivationEmail(EMAIL_REENVIO));
+
+            assertThat(ex.getMensaje()).isEqualTo(ERROR_USUARIO_ACTIVACION_YA_ACTIVADO);
+            verify(accountActivationTokenRepository, never()).invalidateTokensByUser(anyLong(), any());
+            verify(accountActivationTokenRepository, never()).save(any());
+            verify(correoService, never()).generarCorreo(anyMap(), anyString(), any(TemplateMailEnum.class),
+                    nullable(String.class));
+            log.info("Test resendActivationEmail usuario ya activo: excepción lanzada correctamente");
         }
     }
 }

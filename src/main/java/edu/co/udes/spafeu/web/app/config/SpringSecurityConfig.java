@@ -2,13 +2,10 @@ package edu.co.udes.spafeu.web.app.config;
 
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.HEADER_AUTHORIZATION;
 import static edu.co.udes.spafeu.web.app.util.SpringSecurityConstantes.ROLE_USER;
-
 import java.util.Arrays;
-
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -18,21 +15,37 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
-
 import edu.co.udes.spafeu.web.app.auth.filter.JWTAuthenticationFilter;
 import edu.co.udes.spafeu.web.app.auth.filter.JWTValidationFilter;
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
+import edu.co.udes.spafeu.web.app.service.entity.RefreshTokenService;
 
+/**
+ * <p>Titulo: Proyecto SPAFEU</p>
+ * <p>Descripción: Configuración central de seguridad de la aplicación. Define
+ * la cadena de filtros JWT, las reglas de autorización de endpoints, la
+ * política de sesión sin estado y la configuración CORS.</p>
+ *
+ * @author SPAFEU Backend Team
+ */
 @Configuration
 public class SpringSecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
-    public SpringSecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTService jwtService) {
+    @Value("${cors.allowed-origins:http://localhost:4200}")
+    private String corsAllowedOrigins;
+
+    @Value("${cookie.secure:false}")
+    private boolean cookieSecure;
+
+    public SpringSecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTService jwtService,
+            RefreshTokenService refreshTokenService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
     }
 
 	@Bean
@@ -45,6 +58,11 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/activate-account").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/resend-activation-email").permitAll()
+                        // Módulo Refresh Token - endpoints públicos para rotar y revocar sesiones
+                        .requestMatchers(HttpMethod.POST, "/api/session/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/session/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/isemail/{email}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/isusername/{username}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user/kyc/register").hasRole(ROLE_USER)
@@ -66,7 +84,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/exercises/{exerciseId}/complete").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/user/health-profile/register").hasRole(ROLE_USER)
                         .anyRequest().authenticated())
-                .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService))
+                .addFilter(new JWTAuthenticationFilter(authenticationManager(), jwtService, refreshTokenService, cookieSecure))
                 .addFilter(new JWTValidationFilter(authenticationManager(), jwtService))
                 .csrf(config -> config.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -79,9 +97,10 @@ public class SpringSecurityConfig {
     }
 
     @Bean
-   CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList("*"));
+        // Orígenes explícitos para permitir el envío de credenciales (cookies HttpOnly)
+        config.setAllowedOrigins(Arrays.asList(corsAllowedOrigins.split(",")));
         config.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
@@ -98,10 +117,4 @@ public class SpringSecurityConfig {
         return source;
     }
 
-    @Bean
-   FilterRegistrationBean<CorsFilter> corsFilter() {
-        FilterRegistrationBean<CorsFilter> corsBean = new FilterRegistrationBean<>(new CorsFilter(corsConfigurationSource()));
-        corsBean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-        return corsBean;
-    }
 }

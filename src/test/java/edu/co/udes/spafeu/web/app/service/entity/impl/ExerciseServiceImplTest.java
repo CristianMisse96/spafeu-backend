@@ -6,35 +6,36 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.extern.log4j.Log4j2;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
-
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseCompletionResultDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.entities.Exercise;
 import edu.co.udes.spafeu.web.app.models.entities.PhysicalActivityProtocol;
 import edu.co.udes.spafeu.web.app.models.entities.UserExerciseSession;
+import edu.co.udes.spafeu.web.app.models.entities.UserHealthProfile;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 import edu.co.udes.spafeu.web.app.repositories.ExerciseRepository;
-import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserExerciseSessionRepository;
+import edu.co.udes.spafeu.web.app.repositories.UserHealthProfileRepository;
+import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
+import edu.co.udes.spafeu.web.app.service.entity.UserLevelHistoryService;
 import edu.co.udes.spafeu.web.app.util.MensajesKeyConstantesUtil;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +50,13 @@ class ExerciseServiceImplTest {
     private UserExerciseSessionRepository userExerciseSessionRepository;
 
     @Mock
+    private UserHealthProfileRepository userHealthProfileRepository;
+
+    @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private UserLevelHistoryService userLevelHistoryService;
 
     @Mock
     private ModelMapper modelMapper;
@@ -194,7 +201,7 @@ class ExerciseServiceImplTest {
             SpafeuException ex = assertThrows(SpafeuException.class,
                     () -> exerciseService.findById(1L, NivelActividadFisicaEnum.NIVEL_3, 1L));
 
-            assertThat(ex.getMensaje()).isEqualTo("error.usuario.kyc.user.no.existe");
+            assertThat(ex.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.ERROR_USUARIO_NO_EXISTE);
             verify(exerciseRepository, times(1)).findByIdWithDetails(1L);
             verify(userExerciseSessionRepository, times(1)).existsByUserIdAndExerciseIdAndCompletadoTrue(1L, 1L);
             verify(usuarioRepository, times(1)).findById(1L);
@@ -240,20 +247,32 @@ class ExerciseServiceImplTest {
     class CompleteExerciseSession {
 
         @Test
-        @DisplayName("Debe completar la sesión activa calculando minutos realizados")
-        void debeCompletarSesionActivaCalculandoMinutos() throws SpafeuException {
+        @DisplayName("Debe completar la sesión activa sin subir de nivel cuando no completa el protocolo")
+        void debeCompletarSesionActivaSinSubirNivel() throws SpafeuException {
             UserExerciseSession session = new UserExerciseSession();
             session.setId(1L);
             session.setFechaInicio(LocalDateTime.now().minusMinutes(10));
             session.setCompletado(false);
             session.setMinutosRealizados(0);
 
+            UserHealthProfile profile = new UserHealthProfile();
+            profile.setUserId(1L);
+            profile.setNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3);
+
+            Exercise protocolExercise = new Exercise();
+            protocolExercise.setId(2L);
+
             when(userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L))
                     .thenReturn(Optional.of(session));
             when(userExerciseSessionRepository.save(any(UserExerciseSession.class)))
                     .thenAnswer(invocation -> invocation.getArgument(0));
+            when(userHealthProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+            when(exerciseRepository.findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3))
+                    .thenReturn(List.of(protocolExercise));
+            when(userExerciseSessionRepository.findCompletedExerciseIdsByUserId(1L, true))
+                    .thenReturn(Set.of(1L));
 
-            exerciseService.completeExerciseSession(1L, 1L);
+            ExerciseCompletionResultDTO resultado = exerciseService.completeExerciseSession(1L, 1L);
 
             ArgumentCaptor<UserExerciseSession> captor = ArgumentCaptor.forClass(UserExerciseSession.class);
             verify(userExerciseSessionRepository, times(1)).save(captor.capture());
@@ -262,7 +281,131 @@ class ExerciseServiceImplTest {
             assertThat(saved.getCompletado()).isTrue();
             assertThat(saved.getFechaFin()).isNotNull();
             assertThat(saved.getMinutosRealizados()).isGreaterThanOrEqualTo(10);
-            log.info("Test completeExerciseSession con éxito: sesión completada con {} minutos", saved.getMinutosRealizados());
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getSubioNivel()).isFalse();
+            assertThat(resultado.getNivelAnterior()).isEqualTo(NivelActividadFisicaEnum.NIVEL_3);
+            assertThat(resultado.getNivelNuevo()).isNull();
+            assertThat(resultado.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.SUCCESS_EXERCISE_COMPLETADO);
+            log.info("Test completeExerciseSession sin subir nivel: sesión completada con {} minutos", saved.getMinutosRealizados());
+        }
+
+        @Test
+        @DisplayName("Debe subir de nivel cuando se completan todos los ejercicios del protocolo")
+        void debeSubirNivelCuandoCompletaProtocolo() throws SpafeuException {
+            UserExerciseSession session = new UserExerciseSession();
+            session.setId(1L);
+            session.setFechaInicio(LocalDateTime.now().minusMinutes(10));
+            session.setCompletado(false);
+            session.setMinutosRealizados(0);
+
+            UserHealthProfile profile = new UserHealthProfile();
+            profile.setUserId(1L);
+            profile.setNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_2);
+
+            Exercise protocolExercise = new Exercise();
+            protocolExercise.setId(1L);
+
+            when(userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L))
+                    .thenReturn(Optional.of(session));
+            when(userExerciseSessionRepository.save(any(UserExerciseSession.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(userHealthProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+            when(exerciseRepository.findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_2))
+                    .thenReturn(List.of(protocolExercise));
+            when(userExerciseSessionRepository.findCompletedExerciseIdsByUserId(1L, true))
+                    .thenReturn(Set.of(1L));
+            when(userHealthProfileRepository.save(any(UserHealthProfile.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            ExerciseCompletionResultDTO resultado = exerciseService.completeExerciseSession(1L, 1L);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getSubioNivel()).isTrue();
+            assertThat(resultado.getUltimoNivel()).isFalse();
+            assertThat(resultado.getNivelAnterior()).isEqualTo(NivelActividadFisicaEnum.NIVEL_2);
+            assertThat(resultado.getNivelNuevo()).isEqualTo(NivelActividadFisicaEnum.NIVEL_3);
+            assertThat(resultado.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.SUCCESS_NIVEL_SUBIDO);
+            assertThat(profile.getNivelActividadFisica()).isEqualTo(NivelActividadFisicaEnum.NIVEL_3);
+            verify(userLevelHistoryService, times(1)).registrarCambioNivel(1L, NivelActividadFisicaEnum.NIVEL_2, NivelActividadFisicaEnum.NIVEL_3, "Completó el protocolo del Actividad Leve");
+            log.info("Test completeExerciseSession sube nivel: NIVEL_2 -> NIVEL_3");
+        }
+
+        @Test
+        @DisplayName("Debe subir de NIVEL_3 a NIVEL_4 sin marcar ultimoNivel")
+        void debeSubirDeNivel3A4SinMarcarUltimoNivel() throws SpafeuException {
+            UserExerciseSession session = new UserExerciseSession();
+            session.setId(1L);
+            session.setFechaInicio(LocalDateTime.now().minusMinutes(10));
+            session.setCompletado(false);
+            session.setMinutosRealizados(0);
+
+            UserHealthProfile profile = new UserHealthProfile();
+            profile.setUserId(1L);
+            profile.setNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3);
+
+            Exercise protocolExercise = new Exercise();
+            protocolExercise.setId(1L);
+
+            when(userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L))
+                    .thenReturn(Optional.of(session));
+            when(userExerciseSessionRepository.save(any(UserExerciseSession.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(userHealthProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+            when(exerciseRepository.findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_3))
+                    .thenReturn(List.of(protocolExercise));
+            when(userExerciseSessionRepository.findCompletedExerciseIdsByUserId(1L, true))
+                    .thenReturn(Set.of(1L));
+            when(userHealthProfileRepository.save(any(UserHealthProfile.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+
+            ExerciseCompletionResultDTO resultado = exerciseService.completeExerciseSession(1L, 1L);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getSubioNivel()).isTrue();
+            assertThat(resultado.getUltimoNivel()).isFalse();
+            assertThat(resultado.getNivelAnterior()).isEqualTo(NivelActividadFisicaEnum.NIVEL_3);
+            assertThat(resultado.getNivelNuevo()).isEqualTo(NivelActividadFisicaEnum.NIVEL_4);
+            assertThat(resultado.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.SUCCESS_NIVEL_SUBIDO);
+            assertThat(profile.getNivelActividadFisica()).isEqualTo(NivelActividadFisicaEnum.NIVEL_4);
+            verify(userLevelHistoryService, times(1)).registrarCambioNivel(1L, NivelActividadFisicaEnum.NIVEL_3, NivelActividadFisicaEnum.NIVEL_4, "Completó el protocolo del Actividad moderada");
+            log.info("Test completeExerciseSession sube nivel: NIVEL_3 -> NIVEL_4 sin ultimoNivel");
+        }
+
+        @Test
+        @DisplayName("Debe retornar último nivel completado cuando el usuario ya está en NIVEL_4")
+        void debeRetornarUltimoNivelCompletado() throws SpafeuException {
+            UserExerciseSession session = new UserExerciseSession();
+            session.setId(1L);
+            session.setFechaInicio(LocalDateTime.now().minusMinutes(10));
+            session.setCompletado(false);
+            session.setMinutosRealizados(0);
+
+            UserHealthProfile profile = new UserHealthProfile();
+            profile.setUserId(1L);
+            profile.setNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_4);
+
+            Exercise protocolExercise = new Exercise();
+            protocolExercise.setId(1L);
+
+            when(userExerciseSessionRepository.findByUserIdAndExerciseIdAndCompletadoFalse(1L, 1L))
+                    .thenReturn(Optional.of(session));
+            when(userExerciseSessionRepository.save(any(UserExerciseSession.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(userHealthProfileRepository.findById(1L)).thenReturn(Optional.of(profile));
+            when(exerciseRepository.findByProtocolNivelActividadFisica(NivelActividadFisicaEnum.NIVEL_4))
+                    .thenReturn(List.of(protocolExercise));
+            when(userExerciseSessionRepository.findCompletedExerciseIdsByUserId(1L, true))
+                    .thenReturn(Set.of(1L));
+
+            ExerciseCompletionResultDTO resultado = exerciseService.completeExerciseSession(1L, 1L);
+
+            assertThat(resultado).isNotNull();
+            assertThat(resultado.getSubioNivel()).isFalse();
+            assertThat(resultado.getUltimoNivel()).isTrue();
+            assertThat(resultado.getNivelAnterior()).isEqualTo(NivelActividadFisicaEnum.NIVEL_4);
+            assertThat(resultado.getNivelNuevo()).isEqualTo(NivelActividadFisicaEnum.NIVEL_4);
+            assertThat(resultado.getMensaje()).isEqualTo(MensajesKeyConstantesUtil.SUCCESS_ULTIMO_NIVEL_COMPLETADO);
+            log.info("Test completeExerciseSession último nivel: NIVEL_4 completado");
         }
 
         @Test

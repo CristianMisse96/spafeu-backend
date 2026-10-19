@@ -2,22 +2,28 @@ package edu.co.udes.spafeu.web.app.auth.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import javax.crypto.SecretKey;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -25,15 +31,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import edu.co.udes.spafeu.web.app.models.dto.RoleDTO;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
 import edu.co.udes.spafeu.web.app.models.entities.UserHealthProfile;
 import edu.co.udes.spafeu.web.app.models.entities.Usuario;
 import edu.co.udes.spafeu.web.app.models.enums.EstadoKycEnum;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
+import edu.co.udes.spafeu.web.app.models.enums.RolEnum;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * <p>Título: Proyecto SPAFEU</p>
@@ -53,7 +58,6 @@ class JWTServiceImplTest {
     @Mock
     private HttpServletResponse response;
 
-    @InjectMocks
     private JWTServiceImpl jwtService;
 
     private Authentication auth;
@@ -63,6 +67,10 @@ class JWTServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        SecretKey jwtSecretKey = Keys.hmacShaKeyFor(
+                "spafeu-test-secret-key-32bytes-long!".getBytes(StandardCharsets.UTF_8));
+        jwtService = new JWTServiceImpl(repository, jwtSecretKey);
+
         userDTO = new UsuarioDTO();
         userDTO.setId(1L);
         userDTO.setUsername("testuser");
@@ -178,6 +186,50 @@ class JWTServiceImplTest {
             @SuppressWarnings("unchecked")
             List<Object> authoritiesList = (List<Object>) authoritiesObj;
             assertThat(authoritiesList).isNotEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("createAccessToken()")
+    class CreateAccessToken {
+
+        @Test
+        @DisplayName("Debe crear access token con roles cuando el usuario tiene roles")
+        void debeCrearAccessTokenConRoles() throws Exception {
+            RoleDTO roleUser = new RoleDTO(1L, RolEnum.ROLE_USER);
+            RoleDTO roleAdmin = new RoleDTO(2L, RolEnum.ROLE_ADMIN);
+            userDTO.setRoles(List.of(roleUser, roleAdmin));
+
+            String token = jwtService.createAccessToken(userDTO);
+
+            assertThat(token).isNotNull();
+            assertThat(token.split("\\.")).hasSize(3);
+
+            Claims claims = jwtService.getClaims("Bearer " + token);
+            assertThat(claims.getSubject()).isEqualTo("testuser");
+            assertThat(claims.get("id", Long.class)).isEqualTo(1L);
+
+            @SuppressWarnings("unchecked")
+            List<Object> authorities = (List<Object>) claims.get("authorities");
+            assertThat(authorities).hasSize(2);
+        }
+
+        @Test
+        @DisplayName("Debe crear access token sin roles cuando el usuario no tiene roles")
+        void debeCrearAccessTokenSinRoles() throws Exception {
+            userDTO.setRoles(null);
+
+            String token = jwtService.createAccessToken(userDTO);
+
+            assertThat(token).isNotNull();
+            assertThat(token.split("\\.")).hasSize(3);
+
+            Claims claims = jwtService.getClaims("Bearer " + token);
+            assertThat(claims.getSubject()).isEqualTo("testuser");
+
+            @SuppressWarnings("unchecked")
+            List<Object> authorities = (List<Object>) claims.get("authorities");
+            assertThat(authorities).isEmpty();
         }
     }
 

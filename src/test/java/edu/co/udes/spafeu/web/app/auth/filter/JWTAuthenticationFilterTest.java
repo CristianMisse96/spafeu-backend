@@ -3,6 +3,7 @@ package edu.co.udes.spafeu.web.app.auth.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -14,15 +15,21 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -32,13 +39,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.co.udes.spafeu.web.app.auth.service.JWTService;
 import edu.co.udes.spafeu.web.app.models.dto.UsuarioDTO;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import edu.co.udes.spafeu.web.app.service.entity.RefreshTokenService;
 
 /**
  * <p>Título: Proyecto SPAFEU</p>
@@ -59,6 +62,9 @@ class JWTAuthenticationFilterTest {
     private JWTService jWTService;
 
     @Mock
+    private RefreshTokenService refreshTokenService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -70,9 +76,6 @@ class JWTAuthenticationFilterTest {
     @Mock
     private Authentication authResult;
 
-    @Captor
-    private ArgumentCaptor<String> headerCaptor;
-
     private JWTAuthenticationFilter filter;
     private UsuarioDTO usuarioDTO;
     private StringWriter stringWriter;
@@ -80,7 +83,7 @@ class JWTAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        filter = new JWTAuthenticationFilter(authenticationManager, jWTService);
+        filter = new JWTAuthenticationFilter(authenticationManager, jWTService, refreshTokenService, false);
         stringWriter = new StringWriter();
         printWriter = new PrintWriter(stringWriter);
 
@@ -190,6 +193,7 @@ class JWTAuthenticationFilterTest {
             when(authResult.getName()).thenReturn("testuser");
             when(jWTService.findUser("testuser")).thenReturn(usuarioDTO);
             when(jWTService.create(authResult, usuarioDTO)).thenReturn("jwt-token-test");
+            when(refreshTokenService.createRefreshTokenValue(1L)).thenReturn("refresh-token-test");
             when(response.getWriter()).thenReturn(printWriter);
         }
 
@@ -238,6 +242,21 @@ class JWTAuthenticationFilterTest {
 
             verify(jWTService, times(1)).findUser("testuser");
             verify(jWTService, times(1)).create(authResult, usuarioDTO);
+        }
+
+        @Test
+        @DisplayName("Debe agregar cookie HttpOnly con el refresh token")
+        void debeAgregarCookieRefreshToken() throws Exception {
+            filter.successfulAuthentication(request, response, chain, authResult);
+
+            ArgumentCaptor<String> cookieCaptor = ArgumentCaptor.forClass(String.class);
+            verify(response).addHeader(eq(HttpHeaders.SET_COOKIE), cookieCaptor.capture());
+            String cookieValue = cookieCaptor.getValue();
+            assertThat(cookieValue).startsWith("refreshToken=refresh-token-test");
+            assertThat(cookieValue).contains("Path=/api/session");
+            assertThat(cookieValue).contains("Max-Age=604800");
+            assertThat(cookieValue).contains("HttpOnly");
+            assertThat(cookieValue).contains("SameSite=Lax");
         }
     }
 

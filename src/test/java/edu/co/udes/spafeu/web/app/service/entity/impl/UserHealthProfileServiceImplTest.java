@@ -42,6 +42,7 @@ import edu.co.udes.spafeu.web.app.repositories.QuestionRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserAnswerRepository;
 import edu.co.udes.spafeu.web.app.repositories.UserHealthProfileRepository;
 import edu.co.udes.spafeu.web.app.repositories.UsuarioRepository;
+import edu.co.udes.spafeu.web.app.service.entity.UserLevelHistoryService;
 import lombok.extern.log4j.Log4j2;
 
 @ExtendWith(MockitoExtension.class)
@@ -66,6 +67,9 @@ class UserHealthProfileServiceImplTest {
 
     @Mock
     private CampusProgramRepository campusProgramRepository;
+
+    @Mock
+    private UserLevelHistoryService userLevelHistoryService;
 
     @InjectMocks
     private UserHealthProfileServiceImpl userHealthProfileService;

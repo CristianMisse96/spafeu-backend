@@ -22,6 +22,14 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_EXPIRADO = "error.usuario.reset.password.token.expirado";
 	public static final String ERROR_USUARIO_RESET_PASSWORD_TOKEN_NO_VALIDO = "error.usuario.reset.password.token.no.valido";
 	public static final String ERROR_USUARIO_REGISTRAR_EXISTE = "error.usuario.registrar.existe";
+	public static final String SUCCESS_ACTIVACION_CUENTA = "auth.activacion.cuenta.exitoso";
+	public static final String ERROR_USUARIO_ACTIVACION_TOKEN_NO_VALIDO = "error.usuario.activacion.token.no.valido";
+	public static final String ERROR_USUARIO_ACTIVACION_TOKEN_EXPIRADO = "error.usuario.activacion.token.expirado";
+	public static final String SUCCESS_REENVIO_ACTIVACION_CUENTA = "auth.activacion.correo.reenviado";
+	public static final String ERROR_USUARIO_ACTIVACION_YA_ACTIVADO = "error.usuario.activacion.ya.activado";
+	public static final String ERROR_USUARIO_ACTIVACION_NO_REGISTRADO = "error.usuario.activacion.no.registrado";
+
+	public static final String ERROR_USUARIO_NO_EXISTE = "error.usuario.kyc.user.no.existe";
 
 	// ============================================================
 	// Keys del proceso de Perfil de Salud
@@ -30,6 +38,7 @@ public class MensajesKeyConstantesUtil {
 	public static final String PERFIL_SALUD_REGISTRO_EXITOSO = "perfil.salud.registro.exitoso";
 	public static final String ERROR_PERFIL_SALUD_YA_EXISTE = "error.perfil.salud.ya.existe";
 	public static final String ERROR_CAMPUS_PROGRAM_NO_ENCONTRADO = "error.campus.program.no.encontrado";
+	public static final String ERROR_USER_HEALTH_PROFILE_NO_ENCONTRADO = "error.user.health.profile.no.encontrado";
 
 	// ============================================================
 	// Keys del módulo de Ejercicios (Exercise)
@@ -39,4 +48,13 @@ public class MensajesKeyConstantesUtil {
 	public static final String ERROR_EXERCISE_COMPLETO = "error.exercise.completo";
 	public static final String SUCCESS_EXERCISE_COMPLETADO = "success.exercise.completado";
 	public static final String ERROR_EXERCISE_SESSION_NO_ENCONTRADA = "error.exercise.session.no.encontrada";
+	public static final String SUCCESS_NIVEL_SUBIDO = "success.nivel.subido";
+	public static final String SUCCESS_ULTIMO_NIVEL_COMPLETADO = "success.ultimo.nivel.completado";
+
+	// ============================================================
+	// Keys del módulo de Refresh Token
+	// ============================================================
+	public static final String SUCCESS_REFRESH_TOKEN = "success.refresh.token";
+	public static final String SUCCESS_LOGOUT = "success.logout";
+	public static final String ERROR_REFRESH_TOKEN_COOKIE_NO_PRESENTE = "error.refresh.token.cookie.no.presente";
 }

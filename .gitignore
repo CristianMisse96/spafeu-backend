@@ -58,3 +58,6 @@ replay_pid*
 .kilo/*
 .kilocode/*
 .opencode/*
+
+#frontend
+frontend/*

@@ -1,8 +1,8 @@
 package edu.co.udes.spafeu.web.app.service.entity;
 
 import java.util.Set;
-
 import edu.co.udes.spafeu.web.app.exception.SpafeuException;
+import edu.co.udes.spafeu.web.app.models.dto.ExerciseCompletionResultDTO;
 import edu.co.udes.spafeu.web.app.models.dto.ExerciseDTO;
 import edu.co.udes.spafeu.web.app.models.enums.NivelActividadFisicaEnum;
 
@@ -37,11 +37,13 @@ public interface ExerciseService {
 
     /**
      * Completa la sesión de ejercicio activa de un usuario calculando
-     * los minutos realizados entre la fecha de inicio y la fecha de fin.
+     * los minutos realizados entre la fecha de inicio y la fecha de fin,
+     * evaluando si el usuario completa el protocolo y asciende de nivel.
      *
      * @param exerciseId el identificador del ejercicio
      * @param userId el identificador del usuario
+     * @return {@link ExerciseCompletionResultDTO} con el resultado de la operación
      * @throws SpafeuException si no existe una sesión activa para completar
      */
-    void completeExerciseSession(Long exerciseId, Long userId) throws SpafeuException;
+    ExerciseCompletionResultDTO completeExerciseSession(Long exerciseId, Long userId) throws SpafeuException;
 }
