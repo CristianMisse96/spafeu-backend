@@ -40,12 +40,14 @@ Backend RESTful para la promoción, monitoreo y gestión integral de la activida
 
 **SPAFEU** (Sistema de Promoción de la Actividad Física en Estudiantes Universitarios) es una plataforma backend diseñada para fomentar, monitorear y gestionar la actividad física en estudiantes universitarios. El sistema permite:
 
-- **Registro y autenticación segura** de estudiantes con verificación KYC (Know Your Customer)
-- **Perfiles de salud personalizados** con clasificación de nivel de actividad física
-- **Protocolos de actividad física** adaptados a las necesidades de cada usuario
-- **Seguimiento de sesiones de ejercicio** con métricas de progreso
+- **Registro y autenticación segura** de estudiantes, con activación de cuenta por email mediante token UUID
+- **Perfiles de salud personalizados** con clasificación automática del nivel de actividad física
+- **Protocolos de actividad física** adaptados al nivel de actividad física de cada usuario
+- **Seguimiento de sesiones de ejercicio** con métricas de progreso y evaluación de nivel
 - **Dashboard analítico** para visualizar el avance físico del estudiante
+- **Histórico de niveles de actividad física** con trazabilidad de cambios a lo largo del tiempo
 - **Gestión de cuestionarios** para evaluación inicial y seguimiento
+- **Refresh token rotation** con almacenamiento seguro en cookies HttpOnly
 
 El backend está construido con una **arquitectura limpia por capas**, garantizando separación de responsabilidades, escalabilidad y mantenibilidad.
 
@@ -55,14 +57,16 @@ El backend está construido con una **arquitectura limpia por capas**, garantiza
 
 | Módulo | Descripción |
 |--------|-------------|
-| 🔐 **Autenticación JWT** | Sistema de autenticación stateless con tokens JWT, roles y permisos granulares |
-| 👤 **Gestión de Usuarios** | Registro con validación de campus/programa, perfiles de salud y seguimiento KYC |
+| 🔐 **Autenticación JWT** | Sistema stateless con access token JWT, refresh token opaco con rotación y cookies HttpOnly |
+| ✉️ **Activación por Email** | Registro con cuenta inactiva y activación mediante token UUID enviado por correo |
+| 👤 **Gestión de Usuarios** | Registro con validación de campus/programa, perfiles de salud y carga de imagen de perfil |
 | 📊 **Perfiles de Salud** | Clasificación automática del nivel de actividad física basada en cuestionarios |
 | 📋 **Cuestionarios** | Sistema de preguntas y respuestas para evaluación de condición física |
-| 🏃 **Protocolos de Actividad** | Asignación de protocolos personalizados según perfil de salud |
-| 🏋️ **Ejercicios** | Catálogo de ejercicios clasificados por tipo, intensidad y duración |
+| 🏃 **Protocolos de Actividad** | Asignación de protocolos personalizados según el nivel de actividad física |
+| 🏋️ **Ejercicios** | Catálogo de ejercicios clasificados por tipo, intensidad y duración, con flujo de completitud |
 | 📈 **Seguimiento de Sesiones** | Registro y análisis de sesiones de ejercicio completadas |
 | 📉 **Dashboard de Progreso** | Métricas y estadísticas del avance físico del usuario |
+| 📚 **Histórico de Niveles** | Registro histórico de cambios en el nivel de actividad física del usuario |
 | 🏫 **Gestión de Sedes** | Administración de campus universitarios y programas académicos |
 | 📧 **Notificaciones por Email** | Envío de correos con plantillas Thymeleaf |
 
@@ -175,11 +179,11 @@ spafeu-backend/
 │   │   │       │   ├── filter/                    # Filtros JWT (Authentication/Validation)
 │   │   │       │   └── service/                   # Servicio de generación/validación JWT
 │   │   │       ├── config/                        # Configuraciones (Security, OpenAPI, App)
-│   │   │       ├── controllers/                   # RestControllers (8 controladores)
+│   │   │       ├── controllers/                   # RestControllers (10 controladores)
 │   │   │       ├── exception/                     # Excepciones y manejador global
 │   │   │       ├── models/
-│   │   │       │   ├── dto/                     # Data Transfer Objects
-│   │   │       │   ├── entities/                  # Entidades JPA (22 entidades)
+│   │   │       │   ├── dto/                       # Data Transfer Objects
+│   │   │       │   ├── entities/                  # Entidades JPA (24 entidades)
 │   │   │       │   └── enums/                     # Enumeraciones y conversores
 │   │   │       ├── repositories/                  # Repositorios Spring Data JPA
 │   │   │       └── service/
@@ -187,6 +191,9 @@ spafeu-backend/
 │   │   │           └── task/                      # ServiceTasks (adaptadores REST)
 │   │   └── resources/
 │   │       ├── application.properties             # Configuración principal
+│   │       ├── application-dev.properties         # Perfil de desarrollo
+│   │       ├── application-qa.properties          # Perfil de calidad/integración
+│   │       ├── application-prod.properties        # Perfil de producción
 │   │       └── email-asuntos.properties           # Configuración de emails
 │   └── test/
 │       └── java/                                  # Pruebas unitarias (JUnit 5 + Mockito)
@@ -197,17 +204,20 @@ spafeu-backend/
 ### Entidades Principales
 
 - `Usuario` - Usuarios del sistema
-- `UsuarioKyc` - Verificación Know Your Customer
+- `AccountActivationToken` - Token UUID para activación de cuenta por email
+- `PasswordResetToken` - Token para recuperación de contraseña
+- `RefreshToken` - Refresh token opaco para rotación de sesiones
 - `UserHealthProfile` - Perfil de salud del usuario
+- `UserLevelHistory` - Histórico de niveles de actividad física del usuario
 - `PhysicalActivityProtocol` - Protocolos de actividad física
 - `Exercise` - Ejercicios disponibles
 - `UserExerciseSession` - Sesiones de ejercicio del usuario
 - `Questionnaire` - Cuestionarios de evaluación
-- `Question` / `Option` - Preguntas y opciones
+- `Question` / `Option` / `QuestionOption` - Preguntas y opciones
 - `UserAnswer` - Respuestas de usuarios
-- `Campus` / `AcademicProgram` / `CampusProgram` - Sedes y programas
+- `Campus` / `AcademicProgram` / `CampusProgram` / `CampusProgramId` - Sedes y programas
 - `Role` - Roles de usuario
-- `PasswordResetToken` - Tokens de recuperación de contraseña
+- `ActivityType` / `DurationType` / `IntensityType` / `ProtocolObjective` / `MobileApplication` - Catálogos y soporte
 
 ---
 
@@ -241,7 +251,7 @@ GRANT ALL PRIVILEGES ON DATABASE spafeu_db TO spafeu_user;
 
 ### 3. Configurar variables de entorno
 
-Crear un archivo `application-qa.properties` en `src/main/resources/` (o usar variables de entorno):
+Crear un archivo `application-dev.properties` o `application-qa.properties` en `src/main/resources/` (o usar variables de entorno):
 
 ```properties
 # Database
@@ -254,10 +264,17 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 
 # JWT
-jwt.secret=tu_clave_secreta_jwt_muy_segura_de_al_menos_256_bits
-jwt.expiration=86400000
+jwt.secret=tu_clave_secreta_jwt_base64_de_al_menos_256_bits
+jwt.access-token.expiration-minutes=15
+jwt.refresh-token.expiration-days=7
 
-# Email (opcional)
+# CORS
+cors.allowed-origins=http://localhost:4200
+
+# Cookie del refresh token
+cookie.secure=false
+
+# Email
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.username=tu_email@gmail.com
@@ -275,8 +292,8 @@ mvn clean compile
 # Ejecutar tests
 mvn test
 
-# Ejecutar la aplicación
-mvn spring-boot:run
+# Ejecutar la aplicación con perfil de desarrollo
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 La aplicación estará disponible en: `http://localhost:8080`
@@ -291,8 +308,9 @@ El proyecto utiliza perfiles de Spring para diferentes entornos:
 
 | Perfil | Archivo | Uso |
 |--------|---------|-----|
-| `qa` | `application-qa.properties` | Desarrollo y pruebas |
-| `prod` | `application-prod.properties` | Producción (crear si es necesario) |
+| `dev` | `application-dev.properties` | Desarrollo local (perfil activo por defecto) |
+| `qa` | `application-qa.properties` | Calidad e integración |
+| `prod` | `application-prod.properties` | Producción |
 
 Activar un perfil:
 
@@ -307,10 +325,46 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 | `SPRING_DATASOURCE_URL` | URL de conexión JDBC | `jdbc:postgresql://localhost:5432/spafeu_db` |
 | `SPRING_DATASOURCE_USERNAME` | Usuario de BD | `spafeu_user` |
 | `SPRING_DATASOURCE_PASSWORD` | Contraseña de BD | `***` |
-| `JWT_SECRET` | Clave secreta JWT | `mi_clave_secreta_muy_larga...` |
-| `JWT_EXPIRATION` | Tiempo de expiración JWT (ms) | `86400000` |
+| `JWT_SECRET` | Clave secreta JWT (Base64 de al menos 256 bits) | `***` |
+| `JWT_ACCESS_TOKEN_EXPIRATION_MINUTES` | Tiempo de expiración del access token (min) | `15` |
+| `JWT_REFRESH_TOKEN_EXPIRATION_DAYS` | Tiempo de expiración del refresh token (días) | `7` |
+| `CORS_ALLOWED_ORIGINS` | Orígenes permitidos separados por coma | `http://localhost:4200,https://app.com` |
+| `COOKIE_SECURE` | Cookie refresh token solo por HTTPS (`true`/`false`) | `false` |
 | `SPRING_MAIL_USERNAME` | Email para notificaciones | `spafeu@universidad.edu.co` |
 | `SPRING_MAIL_PASSWORD` | Contraseña de aplicación | `***` |
+
+### Ejemplo `application-qa.properties`
+
+```properties
+## Base de datos
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/spafeu_db}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:spafeu_user}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+## JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+
+## JWT
+jwt.secret=${JWT_SECRET:}
+jwt.access-token.expiration-minutes=${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:15}
+jwt.refresh-token.expiration-days=${JWT_REFRESH_TOKEN_EXPIRATION_DAYS:7}
+
+## CORS
+cors.allowed-origins=${CORS_ALLOWED_ORIGINS:}
+
+## Cookies
+cookie.secure=${COOKIE_SECURE:true}
+
+## Email
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=${SPRING_MAIL_USERNAME:}
+spring.mail.password=${SPRING_MAIL_PASSWORD:}
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+```
 
 ---
 
@@ -323,22 +377,37 @@ Una vez ejecutada la aplicación, la documentación Swagger/OpenAPI está dispon
 
 ### Endpoints Principales
 
-| Método | Endpoint | Descripción | Autenticación |
-|--------|----------|-------------|---------------|
-| `POST` | `/api/auth/register` | Registro de nuevo usuario | Público |
-| `POST` | `/api/auth/login` | Inicio de sesión | Público |
-| `POST` | `/api/auth/forgot-password` | Solicitar recuperación de contraseña | Público |
-| `POST` | `/api/auth/reset-password` | Restablecer contraseña | Público |
-| `GET` | `/api/users/me` | Obtener perfil del usuario autenticado | JWT |
-| `PUT` | `/api/users/me/health-profile` | Actualizar perfil de salud | JWT |
-| `GET` | `/api/questionnaires` | Listar cuestionarios disponibles | JWT |
-| `POST` | `/api/questionnaires/{id}/answers` | Enviar respuestas de cuestionario | JWT |
-| `GET` | `/api/protocols` | Listar protocolos de actividad física | JWT |
-| `GET` | `/api/protocols/{id}/exercises` | Obtener ejercicios de un protocolo | JWT |
-| `GET` | `/api/exercises` | Listar ejercicios disponibles | JWT |
-| `POST` | `/api/sessions` | Registrar nueva sesión de ejercicio | JWT |
-| `GET` | `/api/sessions/progress` | Obtener dashboard de progreso | JWT |
-| `GET` | `/api/campus` | Listar sedes universitarias | Público/JWT |
+#### 🔓 Públicos
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/api/login` | Iniciar sesión (devuelve access token en header/body y refresh token en cookie HttpOnly) |
+| `POST` | `/api/auth/register` | Registro de usuario (cuenta inactiva, envía email de activación) |
+| `POST` | `/api/auth/activate-account` | Activar cuenta con token UUID |
+| `POST` | `/api/auth/resend-activation-email` | Reenviar email de activación |
+| `POST` | `/api/auth/forgot-password` | Solicitar recuperación de contraseña |
+| `POST` | `/api/auth/reset-password` | Restablecer contraseña |
+| `POST` | `/api/session/refresh` | Renovar access token (usa cookie HttpOnly) |
+| `POST` | `/api/session/logout` | Cerrar sesión (revoca refresh token) |
+| `GET` | `/api/users/isemail/{email}` | Verificar si existe un email |
+| `GET` | `/api/users/isusername/{username}` | Verificar si existe un username |
+| `GET` | `/api/users/recurso/{currentUserId}/{nombreRecurso}` | Obtener imagen de perfil |
+| `GET` | `/api/campuses` | Listar campus con programas |
+| `GET` | `/api/questionnaires/all` | Listar cuestionarios |
+| `GET` | `/api/physical-activity-protocols` | Listar protocolos (requiere `nivelActividadFisica`) |
+| `GET` | `/api/physical-activity-protocols/exercises` | Listar ejercicios agrupados por tipo (requiere `nivelActividadFisica`) |
+| `GET` | `/api/exercises/{id}` | Obtener ejercicio por ID (requiere `nivelActividadFisica`) |
+
+#### 🔐 Requieren Autenticación JWT
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| `POST` | `/api/user/health-profile/register` | Registrar perfil de salud y respuestas |
+| `GET` | `/api/exercises/completed` | Ejercicios completados por el usuario |
+| `PATCH` | `/api/exercises/{exerciseId}/complete` | Completar sesión de ejercicio |
+| `GET` | `/api/user-exercise-sessions/dashboard` | Dashboard de progreso |
+| `GET` | `/api/user-level-history` | Histórico de niveles de actividad física |
+| `POST` | `/api/users/upload` | Subir imagen de perfil |
 
 > **Nota**: Consulta la documentación Swagger completa para detalles de request/response de cada endpoint.
 
@@ -350,21 +419,26 @@ El sistema implementa seguridad robusta mediante:
 
 ### Autenticación JWT (Stateless)
 - Tokens JWT firmados con HMAC-SHA256
-- Expiración configurable (por defecto 24 horas)
-- Refresh token implícito mediante re-login
+- **Access token**: expiración de 15 minutos, devuelto en el header `Authorization` y en el body
+- **Refresh token opaco**: expiración de 7 días, almacenado en cookie **HttpOnly**
+- **Rotación de refresh tokens** en cada uso: al renovar un access token se invalida el refresh token anterior y se emite uno nuevo
+- Login devuelve access token en header/body y refresh token en cookie HttpOnly
+- Cookie `secure` configurable por entorno (`true` en QA/PROD, `false` en DEV)
 
 ### Autorización Basada en Roles
-- Roles: `ADMIN`, `USER`, `MODERATOR`
-- Protección de endpoints mediante `@PreAuthorize` y configuración de `SecurityFilterChain`
+- Roles: `ADMIN`, `USER`, `VALIDADOR`
+- Protección de endpoints mediante configuración de `SecurityFilterChain`
 - Acceso granular a recursos según rol
 
 ### Protección de Datos
 - Contraseñas encriptadas con BCrypt
 - Validación de entrada con Jakarta Validation (`@Valid`)
-- Manejo seguro de tokens de recuperación de contraseña (expiración de 1 hora)
+- Manejo seguro de tokens de activación y recuperación de contraseña (expiración configurable)
 
 ### Configuración CORS
-- Configuración de orígenes permitidos para integración con frontend
+- Orígenes permitidos configurables mediante `CORS_ALLOWED_ORIGINS`
+- Envío de credenciales habilitado para soportar cookies HttpOnly
+- Métodos permitidos: GET, POST, PUT, PATCH, DELETE, OPTIONS
 
 ---
 
